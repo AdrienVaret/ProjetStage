@@ -994,8 +994,6 @@ public class Solver {
 
 		long begin = System.currentTimeMillis();
 		
-		//breakSymmetries(csp);
-		
 		SAT sat = BinCSPConverter.directEncoding(csp);
 		
 		X  = new Litteral[sat.getNbVariables() * 2];
@@ -1295,18 +1293,6 @@ public class Solver {
 		System.out.println("finalTime : " + finalTime + " ms");
 	}
 	
-	public static void breakSymmetries(BinCSP csp) {
-		int V = csp.getDomains().get(0).size();
-		int i = 1;
-		for (Variable variable : csp.getVariables()) {
-			 for (int index = i ; index < V ; index++) {
-				 variable.getDomain().remove(i); 
-				 
-			 }
-			 i ++;
-		}
-	}
-	
 	public static void main(String [] args) {
 		flagAllSolutions = true;
 		try {
@@ -1315,7 +1301,7 @@ public class Solver {
 			e.printStackTrace();
 		}
 		long begin = System.currentTimeMillis();
-		BinCSP csp = Generator.generatePigeons(5,4);
+		BinCSP csp = Generator.generatePigeons(3,2);
 		//BinCSP csp = Generator.generateProblemWithoutConstraints(2,3);
 		//BinCSP csp = Generator.colSat();
 		solve(csp); 

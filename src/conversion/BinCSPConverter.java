@@ -201,6 +201,46 @@ public class BinCSPConverter {
 		return litterals.get(begin + (2 * i) + state);
 	}
 	
+	public static void breakSymmetries(BinCSP csp) {
+		int V = csp.getDomains().get(0).size();
+		int i = 1;
+		for (Variable variable : csp.getVariables()) {
+			 for (int index = i ; index < V ; index++) {
+				 String value = variable.getDomain().get(i);
+				  
+				 for (int j = 0 ; j < csp.getNbConstraints() ; j++) {
+					Constraint constraint = csp.getConstraints().get(j);
+					
+					if (constraint.getVariable1().equals(variable)) {
+						int l = 0;
+						
+						for (int k = 0 ; k < constraint.getRelation().getCouples().size() ; k++) {
+						//for (Couple couple : constraint.getRelation().getCouples()) {
+							Couple couple = constraint.getRelation().getCouples().get(k);
+							if (couple.getValue1().equals(value))
+								constraint.getRelation().remove(l);
+							 l++;
+						 }
+					 }
+					 
+					 else if (constraint.getVariable2().equals(variable)) {
+							int l = 0;
+							
+							for (int k = 0 ; k < constraint.getRelation().getCouples().size() ; k++) {
+							//for (Couple couple : constraint.getRelation().getCouples()) {
+								Couple couple = constraint.getRelation().getCouples().get(k);
+								if (couple.getValue2().equals(value))
+									constraint.getRelation().remove(l);
+								 l++;
+							 }
+						 }
+				 }
+				 variable.getDomain().remove(i); 	 
+			 }
+			 i ++;
+		}
+	}
+	
 	public static SAT directEncoding(BinCSP csp) {
 		
 		int nbLitterals = 0;
@@ -213,17 +253,22 @@ public class BinCSPConverter {
 		BinCSP newCSP = convertToConflicts(csp);
 		newCSP = shiftDomains(newCSP);
 		
+		breakSymmetries(newCSP);
+		System.out.println(newCSP.toString());		
+		
 		ArrayList<Litteral> litterals = new ArrayList<Litteral>();
 		ArrayList<Clause> clauses = new ArrayList<Clause>();
 		int i = 0;
 		int sum = 0;
 		
 		int nbClauses = 0;
+		//int maxDomain = 0;
 		
 		ArrayList<Integer> t = new ArrayList<Integer>();
 		t.add(0);
 		
 		for (Variable variable : newCSP.getVariables()) {
+			//if (variable.getDomain().size() > maxDomain) maxDomain = variable.getDomain().size();
 			sum += variable.getDomain().size() * 2;
 			t.add(sum);
 			Clause clause = new Clause(nbClauses);
@@ -240,6 +285,28 @@ public class BinCSPConverter {
 			clauses.add(clause);
 			nbClauses ++;
 		}
+		
+		
+		/***
+		for (i = 0 ; i < clauses.size() ; i ++) {
+			for (int j = i + 1 ; j < clauses.size() ; j ++) {
+				Clause clause1 = clauses.get(i);
+				Clause clause2 = clauses.get(j);
+				int minSize = Math.min(clause1.size(), clause2.size());
+				Clause clause = new Clause(nbClauses);
+				for (int k = 0 ; k < minSize ; k++) {
+					Litteral l1 = clause1.get(k);
+					Litteral l2 = clause2.get(k);
+					clause.addLitteral(litterals.get(l1.getId()+1));
+					clause.addLitteral(litterals.get(l2.getId()+1));
+					occ [litterals.get(l1.getId()+1).getId()] ++;
+					occ [litterals.get(l2.getId()+1).getId()] ++;
+					clauses.add(clause);
+					nbClauses ++;
+				}
+			}
+		}
+		***/
 		
 		int size = clauses.size();
 		for (i = 0 ; i < size ; i++) {
@@ -283,6 +350,10 @@ public class BinCSPConverter {
 		for (i = 0 ; i < occ.length ; i++) {
 			if (occ[i] > maxOcc) maxOcc = occ[i];
 		}
+		
+		SAT test = new SAT(litterals.size()/2, clauses.size(), clauses, litterals, maxOcc);	
+		
+		System.out.println(test.toString());
 		
 		return new SAT(litterals.size()/2, clauses.size(), clauses, litterals, maxOcc);	
 	}

@@ -32,6 +32,14 @@ public class Relation {
 		return couples.size();
 	}
 
+	public void remove(Couple couple) {
+		couples.remove(couple);
+	}
+	
+	public void remove(int index) {
+		couples.remove(index);
+	}
+	
 	@Override
 	public String toString() {
 		String string = "[";
