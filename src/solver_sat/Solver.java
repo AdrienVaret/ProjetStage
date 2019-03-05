@@ -1301,7 +1301,7 @@ public class Solver {
 		for (Variable variable : csp.getVariables()) {
 			 for (int index = i ; index < V ; index++) {
 				 variable.getDomain().remove(i); 
-				 //test gitnizhiuzieievrio
+				 
 			 }
 			 i ++;
 		}
