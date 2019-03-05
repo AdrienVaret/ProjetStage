@@ -398,32 +398,53 @@ public class Solver {
 		Litteral l1 = sat.getCouplePtr(index).getV1();
 		Litteral l2 = sat.getCouplePtr(index).getV2();
 		
-		int l1id = getIndex(l1.getId());
-		int l2id = getIndex(l2.getId());
+		if (l1 != null && l2 == null) {
+			int l1id = getIndex(l1.getId());
 			
-		if (sat.getLitteralState(l1id) != -1 && sat.getLitteralState(l2id) != -1) {
-			long end = System.currentTimeMillis();
-			selectCoupleTime += (end - begin);
-			return new GenericCouple<Litteral> (l1, l2);
+			if (sat.getLitteralState(l1id) != -1) {
+				long end = System.currentTimeMillis();
+				selectCoupleTime += (end - begin);
+				return new GenericCouple<Litteral> (l1, null);
+			} else {
+				long end = System.currentTimeMillis();
+				selectCoupleTime += (end - begin);
+				return new GenericCouple<Litteral> (null, null);
+			}
 		}
 		
-		else if (sat.getLitteralState(l1id) != -1 && sat.getLitteralState(l2id) == -1) {
-			long end = System.currentTimeMillis();
-			selectCoupleTime += (end - begin);
-			return new GenericCouple<Litteral> (l1, null);
+		else if (l1 != null && l2 != null) {
+			int l1id = getIndex(l1.getId());
+			int l2id = getIndex(l2.getId());
+			
+			if (sat.getLitteralState(l1id) != -1 && sat.getLitteralState(l2id) != -1) {
+				long end = System.currentTimeMillis();
+				selectCoupleTime += (end - begin);
+				return new GenericCouple<Litteral> (l1, l2);
+			}
+		
+			else if (sat.getLitteralState(l1id) != -1 && sat.getLitteralState(l2id) == -1) {
+				long end = System.currentTimeMillis();
+				selectCoupleTime += (end - begin);
+				return new GenericCouple<Litteral> (l1, null);
+			}
+		
+			else if (sat.getLitteralState(l1id) == -1 && sat.getLitteralState(l2id) != -1) {
+				long end = System.currentTimeMillis();
+				selectCoupleTime += (end - begin);
+				return new GenericCouple<Litteral> (l2, null);
+			}
+		
+			else {
+				long end = System.currentTimeMillis();
+				selectCoupleTime += (end - begin);
+				return new GenericCouple<Litteral> (null, null);
+			}
 		}
 		
-		else if (sat.getLitteralState(l1id) == -1 && sat.getLitteralState(l2id) != -1) {
-			long end = System.currentTimeMillis();
-			selectCoupleTime += (end - begin);
-			return new GenericCouple<Litteral> (l2, null);
-		}
-		
-		else {
-			long end = System.currentTimeMillis();
-			selectCoupleTime += (end - begin);
-			return new GenericCouple<Litteral> (null, null);
-		}
+		//ATTENTION
+		long end = System.currentTimeMillis();
+		selectCoupleTime += (end - begin);
+		return new GenericCouple<Litteral> (null, null);
 	}
 	
 	/**
@@ -943,18 +964,30 @@ public class Solver {
 		
 		for (int i = 0 ; i < sat.getNbClauses() ; i++) {
 			Clause c = sat.getClauses().get(i);
-			Litteral x = c.get(0);
-			Litteral y = c.get(1);
 			
-			sat.setCouplePtr(i, x, y);
+			if (c.size() > 1) {
+				Litteral x = c.get(0);
+				Litteral y = c.get(1);
 			
-			occ[x.getId()][(occ[x.getId()][0]) + 1] = i;
-			occ[x.getId()][0] ++;
-			occ[x.getId()][(occ[x.getId()][0]) + 1] = -1;
+				sat.setCouplePtr(i, x, y);
 			
-			occ[y.getId()][(occ[y.getId()][0]) + 1] = i;
-			occ[y.getId()][0] ++;
-			occ[y.getId()][(occ[y.getId()][0]) + 1] = -1;
+				occ[x.getId()][(occ[x.getId()][0]) + 1] = i;
+				occ[x.getId()][0] ++;
+				occ[x.getId()][(occ[x.getId()][0]) + 1] = -1;
+			
+				occ[y.getId()][(occ[y.getId()][0]) + 1] = i;
+				occ[y.getId()][0] ++;
+				occ[y.getId()][(occ[y.getId()][0]) + 1] = -1;
+			}
+			
+			if (c.size() == 1) {
+				Litteral x = c.get(0);
+				sat.setCouplePtr(i, x, null);
+				
+				occ[x.getId()][(occ[x.getId()][0]) + 1] = i;
+				occ[x.getId()][0] ++;
+				occ[x.getId()][(occ[x.getId()][0]) + 1] = -1;
+			}
 		}
 	}
 	
@@ -1301,7 +1334,7 @@ public class Solver {
 			e.printStackTrace();
 		}
 		long begin = System.currentTimeMillis();
-		BinCSP csp = Generator.generatePigeons(3,2);
+		BinCSP csp = Generator.generatePigeons(4,3);
 		//BinCSP csp = Generator.generateProblemWithoutConstraints(2,3);
 		//BinCSP csp = Generator.colSat();
 		solve(csp); 
