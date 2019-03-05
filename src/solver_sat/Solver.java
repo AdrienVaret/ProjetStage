@@ -1065,8 +1065,7 @@ public class Solver {
 				maxDomain = size;
 			i ++;
 		}
-		//CC : points de choix
-		//CP : compteur
+
 		ArrayList<Integer> CP = new ArrayList<Integer>();
 		ArrayList<Integer> CC = new ArrayList<Integer>();
 		
