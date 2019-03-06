@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-
+/*
 import org.w3c.dom.Document;
 import org.xcsp.common.Types.TypeArithmeticOperator;
 import org.xcsp.common.Types.TypeConditionOperatorRel;
@@ -17,7 +17,7 @@ import org.xcsp.common.Utilities;
 import org.xcsp.common.predicates.XNodeParent;
 import org.xcsp.parser.XCallbacks2;
 import org.xcsp.parser.entries.XVariables.XVarInteger;
-
+*/
 import bincsp.BinCSP;
 import bincsp.Constraint;
 import bincsp.Couple;
@@ -28,11 +28,11 @@ import utils.Operator;
 import bincsp.Relation.TypeRelation;
 import conversion.BinCSPConverter;
 
-public class Parser implements XCallbacks2{
+public class Parser /*implements XCallbacks2*/{
 
 	/**
 	* The constants that can be used to pilot the parser .
-	*/
+	*//*
 	enum XCallbacksParameters {
 		RECOGNIZE_UNARY_PRIMITIVES ,
 		RECOGNIZE_BINARY_PRIMITIVES ,
@@ -61,6 +61,7 @@ public class Parser implements XCallbacks2{
 	* When parsing , by default the parser will try for example to recognize
 	* primitives and special cases of count and nValues .
 	*/
+	/*
 	@SuppressWarnings("unused")
 	private Map < XCallbacksParameters , Object > defaultParameters () {
 		Object dummy = new Object () ;
@@ -769,5 +770,5 @@ public class Parser implements XCallbacks2{
 	public static void main(String [] args) throws Exception {
 		Parser parser = new Parser("file.xml");
 		System.out.println(parser.buildCSP().toString());	
-	}
+	} */
 }

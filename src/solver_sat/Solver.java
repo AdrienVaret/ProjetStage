@@ -1029,9 +1029,11 @@ public class Solver {
 	public static int findColor(int id, BinCSP csp) {
 		int d = csp.getVariables().get(0).getDomain().size();
 		for (int i = 0 ; i < csp.getNbVariables() ; i++) {
-			if (!(((i+1) * d) > id)) {
-				return id - (i*d) - 1;
-			}			
+			int x = ((i+1)*(2*d))-1;
+			if (x >= id) {
+				int color = (id - (i * (2 * d))) / 2;
+				return color;
+			}
 		}
 		return -1;
 	}
@@ -1045,12 +1047,16 @@ public class Solver {
 			if (state[i] == V) symetricsColors.add(i);
 		}
 		
+		int d = csp.getVariables().get(0).getDomain().size();
+		
 		//Delete all symetrics values except one for current variable
 		Litteral [] L1 = new Litteral[sat.getNbVariables() * 2];
 		int iL1 = 0;
 		for (int i = 1 ; i < symetricsColors.size() ; i++) {
 			int color = symetricsColors.get(i);
-			Litteral x = negation(sat, sat.getClauses().get(idClause).get(color));
+			//Litteral x = negation(sat, sat.getClauses().get(idClause).get(color));
+			int indexX = (idClause * (2 * d)) + (2 * color); 
+			Litteral x = negation(sat, sat.getLitterals().get(indexX));
 			L1[iL1] = x;
 			iL1 ++;
 			//state[color] --;
@@ -1067,7 +1073,7 @@ public class Solver {
 		
 		for (int i = 0 ; i < iX ; i++) {
 			Litteral x = X[i];
-			int indexX = findIndex(shift, x.getId());
+			int indexX = x.getId();
 			if (indexX % 2 != 0) { //if a negation is propagated
 				int color = findColor(indexX - 1, csp);
 				state[color] --;

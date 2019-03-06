@@ -34,12 +34,12 @@ public class Launcher {
 		if (args[0].equals("-r")) {
 			String filename = args[1];
 			long begin = System.currentTimeMillis();
-			Parser parser = new Parser(filename);
-			BinCSP csp = parser.buildCSP();
+			//Parser parser = new Parser(filename);
+			//BinCSP csp = parser.buildCSP();
 			long end = System.currentTimeMillis();
 			long parseTime = end - begin;
 			begin = System.currentTimeMillis();
-			Solver.solve(csp);
+			//Solver.solve(csp);
 			end = System.currentTimeMillis();
 			long solveTime = end - begin;
 			System.out.println("# Parse time : " + parseTime + ", Solve time : " + solveTime + 
