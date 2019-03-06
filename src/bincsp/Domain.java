@@ -41,6 +41,10 @@ public class Domain {
 		values.remove(index);
 	}
 	
+	public void remove(String value) {
+		values.remove(value);
+	}
+	
 	@Override
 	public boolean equals(Object o) {
 		Domain d = (Domain) o;

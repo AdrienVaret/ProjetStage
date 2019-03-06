@@ -129,7 +129,8 @@ public class Generator {
 		for (int i = 0 ; i < nbPigeons ; i++) {
 			ArrayList<String> values = new ArrayList<String>();
 			for (int j = 0 ; j < nbNids ; j++) {
-				values.add(Integer.toString(v));
+				//values.add(Integer.toString(v));
+				values.add(Integer.toString(j));
 				v ++;
 			}
 			Domain d = new Domain("D" + i, values);

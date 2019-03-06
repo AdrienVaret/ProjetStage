@@ -201,8 +201,106 @@ public class BinCSPConverter {
 		return litterals.get(begin + (2 * i) + state);
 	}
 	
+	public static void breakSymmetries2(BinCSP csp) {
+		
+		ArrayList<String> symetricsValues = new ArrayList<String>(); 
+		
+		//Calculer les valeurs symétriques.
+		for(String value : csp.getVariables().get(0).getDomain().getValues()) {
+			boolean isSymetric = true;
+			for (int i = 1 ; i < csp.getNbVariables() ; i++) {
+				boolean present = false;
+				Variable variable = csp.getVariables().get(i);
+				
+				for (String value2 : variable.getDomain().getValues()) {
+					if (value.equals(value2)) {
+						present = true;
+						break;
+					}
+				}
+				
+				if (!present) { 
+					isSymetric = false;
+					break;
+				}
+			}
+			
+			if (isSymetric) {
+				symetricsValues.add(value);
+			}
+		}
+		
+		int [] availables = new int [symetricsValues.size()];
+		for (int i = 0 ; i < availables.length ; i++) {
+			availables[i] = csp.getNbVariables();
+		}
+		
+		int V = csp.getNbVariables();
+		
+		for (int i = 0 ; i < csp.getNbVariables() ; i++) {
+			Variable variable = csp.getVariables().get(i);
+			
+			int indexFirstSymetricValue = -1;
+			for (int j = 0 ; j < symetricsValues.size() ; j++) {
+				String value = symetricsValues.get(j);
+				for (int k = 0 ; k < variable.getDomain().size() ; k++) {
+					if (value.equals(variable.getDomain().get(k)) && availables[j] == V) {
+						indexFirstSymetricValue = k;
+						break;
+					}
+				}
+				if (indexFirstSymetricValue > -1) break;
+			}
+			
+			
+			if (indexFirstSymetricValue > -1) {
+				
+				for (int j = 0 ; j < symetricsValues.size() ; j++) {
+					if (j != indexFirstSymetricValue && availables[j] == V) { // == V ?
+						String valueToDelete = symetricsValues.get(j);
+						for (int k = 0 ; k < variable.getDomain().size() ; k++) {
+							if (variable.getDomain().get(k).equals(valueToDelete)) {
+									
+								availables[j] --;
+								
+								//Suppression des contraintes associées.
+								for (Constraint constraint : csp.getConstraints()) {
+									for (int l = 0 ; l < constraint.getRelation().getCouples().size() ; l++) {
+										if (constraint.getVariable1().equals(variable) && 
+											constraint.getRelation().getCouples().get(l).getValue1().equals(valueToDelete)) {
+											
+											constraint.getRelation().remove(constraint.getRelation().getCouples().get(l));
+										}
+										
+										else if (constraint.getVariable2().equals(variable) && 
+												constraint.getRelation().getCouples().get(l).getValue2().equals(valueToDelete)) {
+												
+												constraint.getRelation().remove(constraint.getRelation().getCouples().get(l));
+										}
+									}
+								}
+								
+								//Mise à jour du domaine
+								variable.getDomain().remove(k);
+								
+							}
+						}
+					} else {
+						availables[j] = 0;
+						//V--;
+					}
+				}
+				
+			}
+			V --;
+		}
+		
+		
+	}
+	
 	public static void breakSymmetries(BinCSP csp) {
 		int V = csp.getDomains().get(0).size();
+		int [] state = new int [V];
 		int i = 1;
 		for (Variable variable : csp.getVariables()) {
 			 for (int index = i ; index < V ; index++) {
@@ -215,7 +313,6 @@ public class BinCSPConverter {
 						int l = 0;
 						
 						for (int k = 0 ; k < constraint.getRelation().getCouples().size() ; k++) {
-						//for (Couple couple : constraint.getRelation().getCouples()) {
 							Couple couple = constraint.getRelation().getCouples().get(k);
 							if (couple.getValue1().equals(value))
 								constraint.getRelation().remove(l);
@@ -227,7 +324,6 @@ public class BinCSPConverter {
 							int l = 0;
 							
 							for (int k = 0 ; k < constraint.getRelation().getCouples().size() ; k++) {
-							//for (Couple couple : constraint.getRelation().getCouples()) {
 								Couple couple = constraint.getRelation().getCouples().get(k);
 								if (couple.getValue2().equals(value))
 									constraint.getRelation().remove(l);
@@ -235,7 +331,10 @@ public class BinCSPConverter {
 							 }
 						 }
 				 }
-				 variable.getDomain().remove(i); 	 
+				 variable.getDomain().remove(i);
+				 if (variable.getDomain().size() == 1) {
+					 
+				 }
 			 }
 			 i ++;
 		}
@@ -251,10 +350,11 @@ public class BinCSPConverter {
 		int [] occ = new int [2 * nbLitterals];
 		
 		BinCSP newCSP = convertToConflicts(csp);
-		newCSP = shiftDomains(newCSP);
+		//newCSP = shiftDomains(newCSP);
 		
-		breakSymmetries(newCSP);
-		System.out.println(newCSP.toString());		
+		//breakSymmetries2(newCSP);
+		newCSP = shiftDomains(newCSP);
+		//System.out.println(newCSP.toString());		
 		
 		ArrayList<Litteral> litterals = new ArrayList<Litteral>();
 		ArrayList<Clause> clauses = new ArrayList<Clause>();
@@ -262,13 +362,11 @@ public class BinCSPConverter {
 		int sum = 0;
 		
 		int nbClauses = 0;
-		//int maxDomain = 0;
 		
 		ArrayList<Integer> t = new ArrayList<Integer>();
 		t.add(0);
 		
 		for (Variable variable : newCSP.getVariables()) {
-			//if (variable.getDomain().size() > maxDomain) maxDomain = variable.getDomain().size();
 			sum += variable.getDomain().size() * 2;
 			t.add(sum);
 			Clause clause = new Clause(nbClauses);
@@ -285,28 +383,6 @@ public class BinCSPConverter {
 			clauses.add(clause);
 			nbClauses ++;
 		}
-		
-		
-		/***
-		for (i = 0 ; i < clauses.size() ; i ++) {
-			for (int j = i + 1 ; j < clauses.size() ; j ++) {
-				Clause clause1 = clauses.get(i);
-				Clause clause2 = clauses.get(j);
-				int minSize = Math.min(clause1.size(), clause2.size());
-				Clause clause = new Clause(nbClauses);
-				for (int k = 0 ; k < minSize ; k++) {
-					Litteral l1 = clause1.get(k);
-					Litteral l2 = clause2.get(k);
-					clause.addLitteral(litterals.get(l1.getId()+1));
-					clause.addLitteral(litterals.get(l2.getId()+1));
-					occ [litterals.get(l1.getId()+1).getId()] ++;
-					occ [litterals.get(l2.getId()+1).getId()] ++;
-					clauses.add(clause);
-					nbClauses ++;
-				}
-			}
-		}
-		***/
 		
 		int size = clauses.size();
 		for (i = 0 ; i < size ; i++) {
@@ -351,16 +427,6 @@ public class BinCSPConverter {
 			if (occ[i] > maxOcc) maxOcc = occ[i];
 		}
 		
-		SAT test = new SAT(litterals.size()/2, clauses.size(), clauses, litterals, maxOcc);	
-		
-		System.out.println(test.toString());
-		
 		return new SAT(litterals.size()/2, clauses.size(), clauses, litterals, maxOcc);	
-	}
-
-	public static void main(String [] args) {
-		BinCSP csp = CreateCSP.createBinCSP3COL_3();
-		SAT sat = directEncoding(csp);
-		System.out.println(sat.toString());
 	}
 }

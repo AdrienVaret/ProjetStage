@@ -64,6 +64,13 @@ public class Solver {
 	static Litteral [] X, Y, LP, PA, toPropage, P, C;
 	static int iX = 0, iY = 0, iLP = 0, iPA = 0, iTP = 0, iA = 0, iP = 0, iC = 0;
 	
+	
+	/*
+	 * Variables used for breaking symmetries
+	 */
+	static int [] state;
+	static int V;
+	
 	public static void clearArray(Object [] array) {
 		for (int index = 0 ; index < array.length ; index ++) array[index] = null;
 	}
@@ -1019,6 +1026,61 @@ public class Solver {
 		}
 	}
 	
+	public static int findColor(int id, BinCSP csp) {
+		int d = csp.getVariables().get(0).getDomain().size();
+		for (int i = 0 ; i < csp.getNbVariables() ; i++) {
+			if (!(((i+1) * d) > id)) {
+				return id - (i*d) - 1;
+			}			
+		}
+		return -1;
+	}
+	
+	
+	
+	public static void breakSymmetries(BinCSP csp, SAT sat, int [] shift) {
+		//Compute symetrics colors
+		ArrayList<Integer> symetricsColors = new ArrayList<Integer>();
+		for (int i = 0 ; i < state.length ; i++) {
+			if (state[i] == V) symetricsColors.add(i);
+		}
+		
+		//Delete all symetrics values except one for current variable
+		Litteral [] L1 = new Litteral[sat.getNbVariables() * 2];
+		int iL1 = 0;
+		for (int i = 1 ; i < symetricsColors.size() ; i++) {
+			int color = symetricsColors.get(i);
+			Litteral x = negation(sat, sat.getClauses().get(idClause).get(color));
+			L1[iL1] = x;
+			iL1 ++;
+			//state[color] --;
+		}
+		
+		boolean r = propagation(sat, L1, 0, 1);
+		clearArray(L1);
+		result.clear();
+		V--;
+		
+		if (!r) {
+			System.out.println("UNSAT");
+		}
+		
+		for (int i = 0 ; i < iX ; i++) {
+			Litteral x = X[i];
+			int indexX = findIndex(shift, x.getId());
+			if (indexX % 2 != 0) { //if a negation is propagated
+				int color = findColor(indexX - 1, csp);
+				state[color] --;
+			}
+		}
+		
+		clearX();
+		clearY();
+		clearLP();
+		
+		
+	}
+	
 	/**
 	 * Solve the csp
 	 * @param csp
@@ -1069,10 +1131,24 @@ public class Solver {
 		ArrayList<Integer> CP = new ArrayList<Integer>();
 		ArrayList<Integer> CC = new ArrayList<Integer>();
 		
+		/*
+		 * Initialise variables for symmetries
+		 */
+		V = csp.getNbVariables();
+		state = new int[csp.getVariables().get(0).getDomain().size()];
+		
+		for (int j = 0 ; j < state.length ; j++) {
+			state[j] = V;
+		}
+		
+		
 		while (true) {		
 			switch (action) {
 				case HEURISTIC : 
 					idClause = domHeuristic();
+					/**/
+					breakSymmetries(csp, sat, shift);
+					/**/
 					couple = selectCouple(sat, idClause);
 					break;
 					
