@@ -204,7 +204,7 @@ public class Solver {
 				ip --;
 			}
 			
-			//if (ic > 0) {
+			if (ic > 0) {
 				l = negation(sat, c[ic-1]);
 				L = new Litteral [sat.getNbVariables() * 2]; 
 				L[0] = l;
@@ -219,7 +219,7 @@ public class Solver {
 					iep[idCC] ++;
 				}
 				clearX();
-			//}
+			}
 		}
 		
 		return 1;
@@ -265,7 +265,7 @@ public class Solver {
 			}
 			
 			Litteral l = null;
-			//if (!(l1 == null && l2 == null)) {
+			if (!(l1 == null && l2 == null)) {
 				if (sat.getLitteralsStates()[getIndex(l1.getId())] != -1) {
 					l = l1;
 				} else if (l2 != null && sat.getLitteralsStates()[getIndex(l2.getId())] != -1) {
@@ -274,7 +274,7 @@ public class Solver {
 					l = null;
 					//BT
 				}
-			//}
+			}
 			
 			if (l != null) {
 				c[ic] = l;
