@@ -15,6 +15,123 @@ import bincsp.Variable;
 
 public class Generator {
 
+	public static BinCSP generateUncompleteGraphColoration(int nbVertexs, int nbColors, double density) {
+		
+		ArrayList<Variable> variables = new ArrayList<Variable>();
+		ArrayList<Domain> domains = new ArrayList<Domain>();
+		ArrayList<Constraint> constraints = new ArrayList<Constraint>();
+		ArrayList<Relation> relations = new ArrayList<Relation>();
+		
+		int nbMaxEdges = (nbVertexs * (nbVertexs - 1)) / 2;
+		int nbEdges = (int) (density * nbMaxEdges);
+		
+		int [][] M = new int [nbVertexs][nbVertexs];
+		
+		int i = 0;
+		while(i < nbEdges) {
+			int x = ThreadLocalRandom.current().nextInt(1, nbVertexs);
+			int y = ThreadLocalRandom.current().nextInt(1, nbVertexs);
+			
+			if ((x != y) && (M[x][y] == 0)) {
+				M[x][y] = 1;
+				M[y][x] = 1;
+				i ++;
+			}
+		}
+		
+		int v = 0;
+		for (i = 0 ; i < nbVertexs ; i++) {
+			String name = "D" + Integer.toString(i); 
+			ArrayList<String> values = new ArrayList<String>();
+			for(int j = 0 ; j < nbColors ; j++) {
+				values.add(Integer.toString(v));
+				v++;
+			}
+			domains.add(new Domain(name, values));
+		}
+		
+		for (i = 0 ; i < nbVertexs ; i++) {
+			String name = "X" + i;
+			variables.add(new Variable(name, domains.get(i)));
+		}
+		
+		for (i = 0 ; i < nbVertexs ; i++) {
+			for (int j = i + 1 ; j < nbVertexs ; j++) {
+				if (M[i][j] == 1) {
+					
+					Variable x = variables.get(i);
+					Variable y = variables.get(j);
+					
+					ArrayList<Couple> couples = new ArrayList<Couple>();
+					
+					for (int col = 0 ; col < nbColors ; col ++) {
+						String v1 = Integer.toString((i * nbColors) + col);
+						String v2 = Integer.toString((j * nbColors) + col);
+						couples.add(new Couple(v1, v2));
+					}
+					
+					Relation relation = new Relation(TypeRelation.R_CONFLICTS, couples);
+					Constraint constraint = new Constraint(x, y, relation);
+					
+					constraints.add(constraint);
+					relations.add(relation);
+				}
+			}
+		}
+		
+		return new BinCSP(variables.size(), domains.size(), constraints.size(), relations.size(),
+		          variables, domains, constraints, relations);
+	}
+	
+	public static BinCSP generateCompleteGraphColoration(int nbVertexs, int nbColors) {
+		
+		ArrayList<Variable> variables = new ArrayList<Variable>();
+		ArrayList<Domain> domains = new ArrayList<Domain>();
+		ArrayList<Constraint> constraints = new ArrayList<Constraint>();
+		ArrayList<Relation> relations = new ArrayList<Relation>();
+		
+		int v = 0;
+		for (int i = 0 ; i < nbVertexs ; i++) {
+			String name = "D" + Integer.toString(i); 
+			ArrayList<String> values = new ArrayList<String>();
+			for(int j = 0 ; j < nbColors ; j++) {
+				values.add(Integer.toString(v));
+				v++;
+			}
+			domains.add(new Domain(name, values));
+		}
+		
+		for (int i = 0 ; i < nbVertexs ; i++) {
+			String name = "X" + i;
+			variables.add(new Variable(name, domains.get(i)));
+		}
+		
+		int r = 0;
+		for (int i = 0 ; i < nbVertexs ; i++) {
+			for (int j = i+1 ; j < nbVertexs ; j++) {
+				Variable x = variables.get(i);
+				Variable y = variables.get(j);
+				
+				ArrayList<Couple> couples = new ArrayList<Couple>();
+				
+				for (int col = 0 ; col < nbColors ; col ++) {
+					String v1 = Integer.toString((i * nbColors) + col);
+					String v2 = Integer.toString((j * nbColors) + col);
+					couples.add(new Couple(v1, v2));
+				}
+				
+				Relation relation = new Relation(TypeRelation.R_CONFLICTS, couples);
+				Constraint constraint = new Constraint(x, y, relation);
+				
+				constraints.add(constraint);
+				relations.add(relation);
+			}
+		}
+		
+		return new BinCSP(variables.size(), domains.size(), constraints.size(), relations.size(),
+		          variables, domains, constraints, relations);
+	}
+	
 	public static BinCSP exempleGraphCol() {
 		
 		ArrayList<Domain> domains = new ArrayList<Domain>( Arrays.asList(new Domain [] {
@@ -349,7 +466,7 @@ public class Generator {
 	}
 	
 	public static void main(String [] args) {
-		BinCSP csp = generateUNSATCSP(4,3);
+		BinCSP csp = generateUncompleteGraphColoration(10, 3, 0.1);
 		System.out.println(csp.toString());
 	}
 }
