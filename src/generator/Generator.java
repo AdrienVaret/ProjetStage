@@ -15,6 +15,64 @@ import bincsp.Variable;
 
 public class Generator {
 
+	public static BinCSP exempleGraphCol() {
+		
+		ArrayList<Domain> domains = new ArrayList<Domain>( Arrays.asList(new Domain [] {
+				new Domain("D0", new ArrayList<String>(Arrays.asList(new String [] {"0", "1", "2", "3"}))),
+				new Domain("D1", new ArrayList<String>(Arrays.asList(new String [] {"4", "5", "6", "7"}))),
+				new Domain("D2", new ArrayList<String>(Arrays.asList(new String [] {"8", "9", "10", "11"}))),
+				new Domain("D3", new ArrayList<String>(Arrays.asList(new String [] {"12", "13", "14", "15"}))),
+				new Domain("D4", new ArrayList<String>(Arrays.asList(new String [] {"16", "17", "18", "19"})))
+		}));
+		
+		ArrayList<Variable> variables = new ArrayList<Variable>( Arrays.asList(new Variable [] {
+				new Variable("V", domains.get(0), 0),
+				new Variable("W", domains.get(1), 1),
+				new Variable("X", domains.get(2), 2),
+				new Variable("Y", domains.get(3), 3),
+				new Variable("Z", domains.get(4), 4)
+		}));
+		
+		ArrayList<Couple> cvw = new ArrayList<Couple>(Arrays.asList(new Couple [] {
+				new Couple("0", "4"), new Couple("1", "5"), new Couple("2", "6"), new Couple("3", "7")
+		}));
+		
+		ArrayList<Couple> cvx = new ArrayList<Couple>(Arrays.asList(new Couple [] {
+				new Couple("0", "8"), new Couple("1", "9"), new Couple("2", "10"), new Couple("3", "11")
+		}));
+		
+		ArrayList<Couple> cwy = new ArrayList<Couple>(Arrays.asList(new Couple [] {
+				new Couple("4", "12"), new Couple("5", "13"), new Couple("6", "14"), new Couple("7", "15")
+		}));
+		
+		ArrayList<Couple> cyz = new ArrayList<Couple>(Arrays.asList(new Couple [] {
+				new Couple("12", "16"), new Couple("13", "17"), new Couple("14", "18"), new Couple("15", "19")
+		}));
+		
+		ArrayList<Couple> cxz = new ArrayList<Couple>(Arrays.asList(new Couple [] {
+				new Couple("8", "16"), new Couple("9", "17"), new Couple("10", "18"), new Couple("11", "19")
+		}));
+		
+		ArrayList<Relation> relations = new ArrayList<Relation>(Arrays.asList(new Relation [] {
+				new Relation (TypeRelation.R_CONFLICTS, cvw),
+				new Relation (TypeRelation.R_CONFLICTS, cvx),
+				new Relation (TypeRelation.R_CONFLICTS, cwy),
+				new Relation (TypeRelation.R_CONFLICTS, cyz),
+				new Relation (TypeRelation.R_CONFLICTS, cxz)
+		}));
+		
+		ArrayList<Constraint> constraints = new ArrayList<Constraint>(Arrays.asList(new Constraint [] {
+				new Constraint(variables.get(0), variables.get(1), relations.get(0)),
+				new Constraint(variables.get(0), variables.get(2), relations.get(1)),
+				new Constraint(variables.get(1), variables.get(3), relations.get(2)),
+				new Constraint(variables.get(3), variables.get(4), relations.get(3)),
+				new Constraint(variables.get(2), variables.get(4), relations.get(4))
+			}));
+		
+		return new BinCSP(variables.size(), domains.size(), constraints.size(), relations.size(),
+		          variables, domains, constraints, relations);
+	}
+	
 	public static BinCSP colSat() {
 		
 		ArrayList<Domain> domain = new ArrayList<Domain>( Arrays.asList(new Domain [] {

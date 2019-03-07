@@ -61,6 +61,10 @@ public class Solver {
 	static int [][] occ;
 	static ResultPropagation result;
 	
+	/*
+	 * X, Y sets used by the propagation
+	 * 
+	 */
 	static Litteral [] X, Y, LP, PA, toPropage, P, C;
 	static int iX = 0, iY = 0, iLP = 0, iPA = 0, iTP = 0, iA = 0, iP = 0, iC = 0;
 	
@@ -70,7 +74,13 @@ public class Solver {
 	 */
 	static int [] state;
 	static int V;
+	static Litteral [] SP; //Symetries propagations
+	static ArrayList<Integer> countSP;
+	static int iSP;
 	
+	/*
+	 * Utilitaries
+	 */
 	public static void clearArray(Object [] array) {
 		for (int index = 0 ; index < array.length ; index ++) array[index] = null;
 	}
@@ -194,20 +204,22 @@ public class Solver {
 				ip --;
 			}
 			
-			l = negation(sat, c[ic-1]);
-			L = new Litteral [sat.getNbVariables() * 2]; 
-			L[0] = l;
+			//if (ic > 0) {
+				l = negation(sat, c[ic-1]);
+				L = new Litteral [sat.getNbVariables() * 2]; 
+				L[0] = l;
 			
-			r = propagation(sat, L, 0, 1);
+				r = propagation(sat, L, 0, 1);
 			
-			c[ic - 1] = null;
-			ic --;
+				c[ic - 1] = null;
+				ic --;
 			
-			for (int i = 0 ; i < iX ; i++) {
-				ep[idCC][iep[idCC]] = X[i];
-				iep[idCC] ++;
-			}
-			clearX();
+				for (int i = 0 ; i < iX ; i++) {
+					ep[idCC][iep[idCC]] = X[i];
+					iep[idCC] ++;
+				}
+				clearX();
+			//}
 		}
 		
 		return 1;
@@ -253,16 +265,16 @@ public class Solver {
 			}
 			
 			Litteral l = null;
-			
-			if (sat.getLitteralsStates()[getIndex(l1.getId())] != -1) {
-				l = l1;
-			} else if (l2 != null && sat.getLitteralsStates()[getIndex(l2.getId())] != -1) {
-				l = l2;
-			} else {
-				l = null;
-				//BT
-			}
-		
+			//if (!(l1 == null && l2 == null)) {
+				if (sat.getLitteralsStates()[getIndex(l1.getId())] != -1) {
+					l = l1;
+				} else if (l2 != null && sat.getLitteralsStates()[getIndex(l2.getId())] != -1) {
+					l = l2;
+				} else {
+					l = null;
+					//BT
+				}
+			//}
 			
 			if (l != null) {
 				c[ic] = l;
@@ -1040,12 +1052,14 @@ public class Solver {
 	
 	
 	
-	public static void breakSymmetries(BinCSP csp, SAT sat, int [] shift) {
+	public static int breakSymmetries(BinCSP csp, SAT sat, int [] shift) {
 		//Compute symetrics colors
 		ArrayList<Integer> symetricsColors = new ArrayList<Integer>();
 		for (int i = 0 ; i < state.length ; i++) {
 			if (state[i] == V) symetricsColors.add(i);
 		}
+		
+		if (symetricsColors.size() == 0) return 0;
 		
 		int d = csp.getVariables().get(0).getDomain().size();
 		
@@ -1054,12 +1068,10 @@ public class Solver {
 		int iL1 = 0;
 		for (int i = 1 ; i < symetricsColors.size() ; i++) {
 			int color = symetricsColors.get(i);
-			//Litteral x = negation(sat, sat.getClauses().get(idClause).get(color));
 			int indexX = (idClause * (2 * d)) + (2 * color); 
 			Litteral x = negation(sat, sat.getLitterals().get(indexX));
 			L1[iL1] = x;
 			iL1 ++;
-			//state[color] --;
 		}
 		
 		boolean r = propagation(sat, L1, 0, 1);
@@ -1078,13 +1090,19 @@ public class Solver {
 				int color = findColor(indexX - 1, csp);
 				state[color] --;
 			}
+			SP[iSP] = x;
+			iSP ++;
 		}
+				
+		state[symetricsColors.get(0)] = 0; //(ou décrémenter, à voir)
+		
+		countSP.add(iX);
 		
 		clearX();
 		clearY();
 		clearLP();
 		
-		
+		return 1;
 	}
 	
 	/**
@@ -1147,6 +1165,8 @@ public class Solver {
 			state[j] = V;
 		}
 		
+		SP = new Litteral[sat.getNbVariables()*2];
+		countSP = new ArrayList<Integer>();
 		
 		while (true) {		
 			switch (action) {
@@ -1415,9 +1435,10 @@ public class Solver {
 			e.printStackTrace();
 		}
 		long begin = System.currentTimeMillis();
-		BinCSP csp = Generator.generatePigeons(4,3);
+		//BinCSP csp = Generator.generatePigeons(4,3);
 		//BinCSP csp = Generator.generateProblemWithoutConstraints(2,3);
 		//BinCSP csp = Generator.colSat();
+		BinCSP csp = Generator.exempleGraphCol();
 		solve(csp); 
 		BinCSP.exportToXCSP3(csp, "output.xml"); 
 		long end = System.currentTimeMillis();
