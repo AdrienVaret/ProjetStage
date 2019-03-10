@@ -29,8 +29,8 @@ public class Generator {
 		
 		int i = 0;
 		while(i < nbEdges) {
-			int x = ThreadLocalRandom.current().nextInt(1, nbVertexs);
-			int y = ThreadLocalRandom.current().nextInt(1, nbVertexs);
+			int x = ThreadLocalRandom.current().nextInt(0, nbVertexs);
+			int y = ThreadLocalRandom.current().nextInt(0, nbVertexs);
 			
 			if ((x != y) && (M[x][y] == 0)) {
 				M[x][y] = 1;
@@ -52,7 +52,7 @@ public class Generator {
 		
 		for (i = 0 ; i < nbVertexs ; i++) {
 			String name = "X" + i;
-			variables.add(new Variable(name, domains.get(i)));
+			variables.add(new Variable(name, domains.get(i), i));
 		}
 		
 		for (i = 0 ; i < nbVertexs ; i++) {
@@ -103,7 +103,7 @@ public class Generator {
 		
 		for (int i = 0 ; i < nbVertexs ; i++) {
 			String name = "X" + i;
-			variables.add(new Variable(name, domains.get(i)));
+			variables.add(new Variable(name, domains.get(i), i));
 		}
 		
 		int r = 0;

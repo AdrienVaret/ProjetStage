@@ -31,7 +31,10 @@ public class Solver {
 	 */
 	static boolean flagAllSolutions = false;
 	static boolean flagDomHeuristic = true;
+	static boolean flagDegHeuristic;
 	static boolean flagWriteTree = false;
+	static boolean flagSymetries = false;
+	static boolean flagNoMoreSymmetries = false;
 	
 	/*
 	 * Time declarations
@@ -253,6 +256,11 @@ public class Solver {
 		int idS = 0;
 		
 		while (true) {
+			
+			/**/
+			if (idCC >= CC.size()) break;
+			/**/
+			
 			int n = CC.get(idCC);
 			
 			
@@ -477,6 +485,20 @@ public class Solver {
 			if (variablesStates[i] == 0) {
 				if (domainsSizes[i] < minSize) {
 					minSize = domainsSizes[i];
+					index = i;
+				}
+			}
+		}
+		return index;
+	}
+	
+	public static int degHeuristic(BinCSP csp) {
+		int maxDegree = -1;
+		int index = -1;
+		for (int i = 0 ; i < domainsSizes.length ; i++) {
+			if (variablesStates[i] == 0) {
+				if (csp.getDegrees()[i] > maxDegree) {
+					maxDegree = csp.getDegrees()[i];
 					index = i;
 				}
 			}
@@ -1013,7 +1035,7 @@ public class Solver {
 	public static void displayAllSolutions(SAT sat, BinCSP csp, int [] shift) {
 		int nbSolutions = 1;
 		for (Litteral [] L : solutions) {
-			System.out.println("# Solution " + nbSolutions + " : ");
+			//System.out.println("# Solution " + nbSolutions + " : ");
 			for (Litteral l : L) {
 				int id = 0, begin = 0, indexVariable = 0;
 				for (int i = 0 ; i < shift.length ; i++) {
@@ -1031,9 +1053,9 @@ public class Solver {
 				int indexValue = id - begin;
 				String name = csp.getVariables().get(indexVariable).getName();
 				String value = csp.getVariables().get(indexVariable).getDomain().get(indexValue);
-				System.out.println("# " + name + " = " + value);
+				//System.out.println("# " + name + " = " + value);
 			}
-			System.out.println("##");
+			//System.out.println("##");
 			nbSolutions ++;
 		}
 	}
@@ -1059,7 +1081,10 @@ public class Solver {
 			if (state[i] == V) symetricsColors.add(i);
 		}
 		
-		if (symetricsColors.size() == 0) return 0;
+		if (symetricsColors.size() == 0) {
+			flagNoMoreSymmetries = true;
+			return 0;
+		}
 		
 		int d = csp.getVariables().get(0).getDomain().size();
 		
@@ -1081,6 +1106,7 @@ public class Solver {
 		
 		if (!r) {
 			System.out.println("UNSAT");
+			return -1;
 		}
 		
 		for (int i = 0 ; i < iX ; i++) {
@@ -1168,12 +1194,18 @@ public class Solver {
 		SP = new Litteral[sat.getNbVariables()*2];
 		countSP = new ArrayList<Integer>();
 		
+		//int r = 0;
+		
 		while (true) {		
 			switch (action) {
 				case HEURISTIC : 
-					idClause = domHeuristic();
+					//idClause = domHeuristic();
+					idClause = degHeuristic(csp);
 					/**/
-					breakSymmetries(csp, sat, shift);
+					if (flagSymetries && !flagNoMoreSymmetries) {
+						int r = breakSymmetries(csp, sat, shift);
+						if (r == -1) break;
+					}
 					/**/
 					couple = selectCouple(sat, idClause);
 					break;
@@ -1427,21 +1459,45 @@ public class Solver {
 		System.out.println("finalTime : " + finalTime + " ms");
 	}
 	
+	public static void resetTimer() {
+		propagationTime = 0;
+		backtrackTime = 0;
+		restoreTime = 0;
+		selectCoupleTime = 0;
+		findUnaffectedTime = 0;
+		solveTime = 0;
+		finalTime = 0;
+	}
+	
 	public static void main(String [] args) {
 		flagAllSolutions = true;
+		flagDomHeuristic = false;
+		flagDegHeuristic = true;
+		
 		try {
 			w = new BufferedWriter(new FileWriter(new File("pc.txt")));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
 		long begin = System.currentTimeMillis();
-		//BinCSP csp = Generator.generatePigeons(4,3);
-		//BinCSP csp = Generator.generateProblemWithoutConstraints(2,3);
-		//BinCSP csp = Generator.colSat();
-		BinCSP csp = Generator.exempleGraphCol();
+		flagSymetries = true;
+		//BinCSP csp = Generator.generateUncompleteGraphColoration(20, 9, 0.7);
+		BinCSP csp = Generator.generateCompleteGraphColoration(3, 2);
+		//BinCSP csp = Generator.generatePigeons(10, 9);
 		solve(csp); 
 		BinCSP.exportToXCSP3(csp, "output.xml"); 
 		long end = System.currentTimeMillis();
+		finalTime = end - begin;
+		displayTime();
+		
+		System.out.println("#########################################");
+		
+		resetTimer();
+		begin = System.currentTimeMillis();
+		flagSymetries = false;
+		solve(csp); 
+		end = System.currentTimeMillis();
 		finalTime = end - begin;
 		displayTime();
 	}

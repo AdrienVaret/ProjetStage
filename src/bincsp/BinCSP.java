@@ -14,6 +14,7 @@ public class BinCSP {
 	private ArrayList<Domain> domains;
 	private ArrayList<Constraint> constraints;
 	private ArrayList<Relation> relations;
+	private int [] degrees;
 	
 	public BinCSP(int nbVariables, int nbDomains, int nbConstraints, int nbRelations, ArrayList<Variable> variables,
 			ArrayList<Domain> domains, ArrayList<Constraint> constraints, ArrayList<Relation> relations) {
@@ -25,8 +26,13 @@ public class BinCSP {
 		this.domains = domains;
 		this.constraints = constraints;
 		this.relations = relations;
+		this.computeDegree();
 	}
 
+	public int [] getDegrees() {
+		return degrees;
+	}
+	
 	public int getNbVariables() {
 		return nbVariables;
 	}
@@ -58,6 +64,14 @@ public class BinCSP {
 	public ArrayList<Relation> getRelations() {
 		return relations;
 	}	
+	
+	public void computeDegree() {
+		degrees = new int[nbVariables];
+		for (Constraint constraint : constraints) {
+			degrees[constraint.getVariable1().getIndex()] ++;
+			degrees[constraint.getVariable2().getIndex()] ++;
+		}
+	}
 	
 	public static void exportToXCSP3(BinCSP csp, String path) {
 		try {
