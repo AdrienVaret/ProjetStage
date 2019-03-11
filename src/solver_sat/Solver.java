@@ -406,6 +406,9 @@ public class Solver {
 	 * @return boolean
 	 */
 	public static boolean isAffected(SAT sat, Litteral l) {
+		/**/
+		//if (l == null) return false;
+		/**/
 		return sat.getLitteralState(getIndex(l.getId())) != 0;
 	}
 	
@@ -600,6 +603,9 @@ public class Solver {
 				
 				if (affectable == null) {
 					if (x.equals(nl)) {
+						/**/
+						
+						/**/
 						if (isAffected(sat, y)) {
 							if (isSat(sat, y))
 								statesClauses[c.getId()] = 1;
@@ -1194,7 +1200,7 @@ public class Solver {
 		SP = new Litteral[sat.getNbVariables()*2];
 		countSP = new ArrayList<Integer>();
 		
-		//int r = 0;
+		int resultSymmetries = 0;
 		
 		while (true) {		
 			switch (action) {
@@ -1203,8 +1209,8 @@ public class Solver {
 					idClause = degHeuristic(csp);
 					/**/
 					if (flagSymetries && !flagNoMoreSymmetries) {
-						int r = breakSymmetries(csp, sat, shift);
-						if (r == -1) break;
+						resultSymmetries = breakSymmetries(csp, sat, shift);
+						if (resultSymmetries == -1) break;
 					}
 					/**/
 					couple = selectCouple(sat, idClause);
@@ -1215,6 +1221,14 @@ public class Solver {
 					break;
 			}
 		
+			if (resultSymmetries == -1) {
+				System.out.println("UNSATISFIABLE");
+				System.out.println("nb_nodes : " + nbNodes);
+				long end = System.currentTimeMillis();
+				solveTime = end - begin;
+				break;
+			}
+			
 			nbNodes ++;	
 			
 			Litteral x = couple.getV1();
@@ -1482,8 +1496,8 @@ public class Solver {
 		
 		long begin = System.currentTimeMillis();
 		flagSymetries = true;
-		//BinCSP csp = Generator.generateUncompleteGraphColoration(20, 9, 0.7);
-		BinCSP csp = Generator.generateCompleteGraphColoration(3, 2);
+		//BinCSP csp = Generator.generateUncompleteGraphColoration(20, 3, 0.3);
+		BinCSP csp = Generator.generateCompleteGraphColoration(3, 1);
 		//BinCSP csp = Generator.generatePigeons(10, 9);
 		solve(csp); 
 		BinCSP.exportToXCSP3(csp, "output.xml"); 
@@ -1493,7 +1507,11 @@ public class Solver {
 		
 		System.out.println("#########################################");
 		
+		nbNodes = 0;
+		clearX();
+		clearY();
 		resetTimer();
+		
 		begin = System.currentTimeMillis();
 		flagSymetries = false;
 		solve(csp); 
