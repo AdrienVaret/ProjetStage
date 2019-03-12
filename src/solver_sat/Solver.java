@@ -1500,7 +1500,7 @@ public class Solver {
 		long begin = System.currentTimeMillis();
 		flagSymetries = true;
 		//BinCSP csp = Generator.generateUncompleteGraphColoration(20, 3, 0.3);
-		BinCSP csp = Generator.generateCompleteGraphColoration(3, 3);
+		BinCSP csp = Generator.generateCompleteGraphColoration(50,5);
 		//BinCSP csp = Generator.generatePigeons(10, 9);
 		solve(csp); 
 		BinCSP.exportToXCSP3(csp, "output.xml"); 
