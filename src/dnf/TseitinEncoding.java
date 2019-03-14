@@ -238,6 +238,10 @@ public class TseitinEncoding {
 	
 	
 	public static Formula encode(Formula fi) {
+		
+		System.out.println(fi.toString());
+		System.out.println("###########");
+		
 		formulas.add(new Var(Integer.toString(1)));
 		exploreFormula(fi);
 		i = 0;
@@ -247,7 +251,7 @@ public class TseitinEncoding {
 		for (Formula f : formulas) 
 			System.out.println(f.toString());
 		
-		int i = 0;
+		int i = 3;
 		for (Formula f : formulas) {
 			if (i > 2) {
 				Formula tf = transform(f);
@@ -272,11 +276,10 @@ public class TseitinEncoding {
 		And f3 = new And(f2, new Var("r"));
 		If fi2 = new If(f3, f1);
 		
-		Neg neg = new Neg(new Or(new Neg(new Var("a")), new Var("c")));
-		Or or1 = new Or(new Var("b"), neg);
+		Neg neg = new Neg(new Or(new Neg(new Var("a")), new Neg(new Var("c"))));
+		Or or1 = new Or(new Neg(new Var("b")), neg);
 		Or or2 = new Or(new Neg(new Var("a")), or1);
-		
-		
+			
 		encode(or2);
 	}
 }
