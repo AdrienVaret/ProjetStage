@@ -14,6 +14,7 @@ import generator.Generator;
 import sat.Clause;
 import sat.Litteral;
 import sat.SAT;
+import utils.Cause;
 import utils.GenericCouple;
 import utils.GenericCouple2;
 import utils.Utils;
@@ -80,6 +81,12 @@ public class Solver {
 	static Litteral [] SP; //Symetries propagations
 	static ArrayList<Integer> countSP;
 	static int iSP;
+	
+	/*
+	 * Variables used for clause learning
+	 */
+	static ArrayList<ArrayList<Cause>> reason;
+	static int decisionLevel;
 	
 	/*
 	 * Utilitaries
@@ -1204,6 +1211,13 @@ public class Solver {
 		countSP = new ArrayList<Integer>();
 		
 		int resultSymmetries = 0;
+		
+		
+		/*
+		 * Initialize variables for learning
+		 */
+		reason = new ArrayList<ArrayList<Cause>>();
+		decisionLevel = 1;
 		
 		while (true) {		
 			switch (action) {
