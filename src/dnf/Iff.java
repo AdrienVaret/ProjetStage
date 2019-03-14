@@ -9,7 +9,7 @@ public class Iff implements Formula{
 	}
 	
 	public String toString() {
-		return "(" + f1.toString() + " \\if " + f2.toString() + ")";
+		return "(" + f1.toString() + " \\iff " + f2.toString() + ")";
 	}
 
 	public Formula getF1() {

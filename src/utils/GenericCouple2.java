@@ -25,4 +25,8 @@ public class GenericCouple2<S, T> {
 	public void setValue2(T value2) {
 		this.value2 = value2;
 	}
+	
+	public String toString() {
+		return "(" + value1.toString() + ", " + value2.toString() + ")";
+	}
 }
