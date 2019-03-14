@@ -180,7 +180,7 @@ public class Solver {
 		Litteral [] L = new Litteral [sat.getNbVariables() * 2]; 
 		L[0] = l;
 		
-		boolean r = propagation(sat, L, 0, 1);
+		boolean r = propagation(sat, L, 0, 1, false);
 		
 		c[ic - 1] = null;
 		ic --;
@@ -219,7 +219,7 @@ public class Solver {
 				L = new Litteral [sat.getNbVariables() * 2]; 
 				L[0] = l;
 			
-				r = propagation(sat, L, 0, 1);
+				r = propagation(sat, L, 0, 1, false);
 			
 				c[ic - 1] = null;
 				ic --;
@@ -295,7 +295,7 @@ public class Solver {
 				c[ic] = l;
 				ic ++;
 				L[0] = l;
-				propagation(sat, L, 0, 1);
+				propagation(sat, L, 0, 1, false);
 				
 				for (int i = 0 ; i < L.length ; i++)
 					L[i] = null;
@@ -360,7 +360,7 @@ public class Solver {
 			Litteral [] L = new Litteral[sat.getNbVariables() * 2];
 			L[0] = l;
 			
-			boolean r = propagation(sat, L, 0, 1);
+			boolean r = propagation(sat, L, 0, 1, false);
 			clearArray(L);
 			clearX();
 			
@@ -369,7 +369,7 @@ public class Solver {
 				i ++;
 				l = sat.getLitteral(i);
 				L[0] = l;
-				propagation(sat, L, 0, 1);
+				propagation(sat, L, 0, 1, false);
 				clearArray(L);
 			}
 			i = findUnafLitteral(sat);
@@ -573,7 +573,7 @@ public class Solver {
 	 * @param action (1 = intersection), set (1 = X, 2 = Y)
 	 * @return
 	 */
-	public static boolean propagation(SAT sat, Litteral [] L, int action, int set) {
+	public static boolean propagation(SAT sat, Litteral [] L, int action, int set, boolean updateGraph) {
 		
 		long begin = System.currentTimeMillis();
 		int [] propagateds = new int [sat.getNbVariables() * 2];
@@ -796,9 +796,9 @@ public class Solver {
 	}
 	
 	public static void propagationAll(SAT sat, Litteral [] L1, Litteral [] L2, int [] shift) {
-		boolean result1 = propagation(sat, L1, 2, 1);
+		boolean result1 = propagation(sat, L1, 2, 1, false);
 		restoreAll(sat, X, shift);
-		boolean result2 = propagation(sat, L2, 2, 2);
+		boolean result2 = propagation(sat, L2, 2, 2, false);
 		clearArray(L1);
 		clearArray(L2);
 		restoreAll(sat, Y, shift);
@@ -887,7 +887,7 @@ public class Solver {
 			iC --;
 		}
 		
-		boolean r = propagation(sat, toPropage, 0, 1);
+		boolean r = propagation(sat, toPropage, 0, 1, false);
 		clearTP();
 		result.clear();
 		
@@ -954,7 +954,7 @@ public class Solver {
 					iC --;
 				}
 				
-				r = propagation(sat, toPropage, 0, 1);
+				r = propagation(sat, toPropage, 0, 1, false);
 				clearTP();
 				result.clear();
 				
@@ -1115,7 +1115,7 @@ public class Solver {
 			iL1 ++;
 		}
 		
-		boolean r = propagation(sat, L1, 0, 1);
+		boolean r = propagation(sat, L1, 0, 1, false);
 		clearArray(L1);
 		result.clear();
 		V--;
@@ -1304,7 +1304,7 @@ public class Solver {
 					}
 				} else {
 					action = Action.HEURISTIC;
-					propagation(sat, PA, 0, 1);
+					propagation(sat, PA, 0, 1, true);
 					clearPA();
 					
 					for (int index = 0 ; index < iX ; index++) {
@@ -1380,7 +1380,7 @@ public class Solver {
 				Litteral [] L1 = new Litteral[sat.getNbVariables() * 2];
 				L1[0] = x;
 				
-				boolean r = propagation(sat, L1, 0, 1); 
+				boolean r = propagation(sat, L1, 0, 1, true); 
 				
 				clearArray(L1);
 				
