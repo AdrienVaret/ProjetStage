@@ -65,6 +65,7 @@ public class Solver {
 	static int [][] occ;
 	static ResultPropagation result;
 	
+	
 	/*
 	 * X, Y sets used by the propagation
 	 * 
@@ -72,6 +73,8 @@ public class Solver {
 	static Litteral [] X, Y, LP, PA, toPropage, P, C;
 	static int iX = 0, iY = 0, iLP = 0, iPA = 0, iTP = 0, iA = 0, iP = 0, iC = 0;
 	
+	static ArrayList<Integer> CP = new ArrayList<Integer>();
+	static ArrayList<Integer> CC = new ArrayList<Integer>();
 	
 	/*
 	 * Variables used for breaking symmetries
@@ -87,10 +90,25 @@ public class Solver {
 	 */
 	static ArrayList<ArrayList<Cause>> reason;
 	static int decisionLevel;
+	static int[] P1;
+	static int[] P2;
 	
 	/*
 	 * Utilitaries
 	 */
+	
+	public static void clearP1() {
+		for (int i = 0 ; i < P1.length ; i++) {
+			P1[i] = 0;
+		}
+	}
+	
+	public static void clearP2() {
+		for (int i = 0 ; i < P2.length ; i++) {
+			P2[i] = 0;
+		}
+	}
+	
 	public static void clearArray(Object [] array) {
 		for (int index = 0 ; index < array.length ; index ++) array[index] = null;
 	}
@@ -587,9 +605,11 @@ public class Solver {
 			propagateds[l.getId()] = 1;
 			
 			if (set == 1) {
+				P1[l.getId()] = 1;
 				X[iX] = l;
 				iX ++;
 			} else if (set == 2) {
+				P2[l.getId()] = 1;
 				Y[iY] = l;
 				iY ++;
 			}
@@ -628,14 +648,16 @@ public class Solver {
 								propagateds[y.getId()] = 1;
 
 								L[idLitteral] = y;
-								idLitteral ++;
-
+								idLitteral ++;	
+								
 								result.incr(y.getId());
 								
 								if (set == 1) {
 									X[iX] = y;
+									if (y != null) P1[y.getId()] = 1;
 									iX ++;
 								} else if (set == 2) {
+									if (y != null) P2[y.getId()] = 1;
 									Y[iY] = y;
 									iY ++;
 								}
@@ -665,9 +687,11 @@ public class Solver {
 								result.incr(x.getId());
 								
 								if (set == 1) {
+									if (x != null) P1[x.getId()] = 1;
 									X[iX] = x;
 									iX ++;
 								} else if (set == 2) {
+									if (x != null) P2[x.getId()] = 1;
 									Y[iY] = x;
 									iY ++;
 								}
@@ -795,12 +819,19 @@ public class Solver {
 		restoreTime += time;
 	}
 	
+	public static boolean sameVariable(BinCSP csp, SAT sat, Litteral l1, Litteral l2) {
+		
+		
+		
+		return true;
+	}
+	
 	public static void propagationAll(SAT sat, Litteral [] L1, Litteral [] L2, int [] shift) {
 		boolean result1 = propagation(sat, L1, 2, 1, false);
 		restoreAll(sat, X, shift);
 		boolean result2 = propagation(sat, L2, 2, 2, false);
-		clearArray(L1);
-		clearArray(L2);
+		//clearArray(L1);
+		//clearArray(L2);
 		restoreAll(sat, Y, shift);
 		
 		result.clear();
@@ -808,18 +839,60 @@ public class Solver {
 		if (result1 && !result2) {
 			PA = X.clone();
 			iPA = X.length;
+			clearArray(L1);
+			clearArray(L2);
 		}
 		else if (!result1 && result2) {
 			PA = Y.clone();
 			iPA = Y.length;
+			clearArray(L1);
+			clearArray(L2);
 		}
 		else if (!result1 && !result2) {
 			PA = null;
 			iPA = 0;
+			clearArray(L1);
+			clearArray(L2);
 		}
 		else {
 			PA = LP.clone();
 			iPA = LP.length;
+			
+			int i = 0;
+			while (PA[i] != null) {
+				int index = PA[i].getId();
+				P1[index] = 0;
+				P2[index] = 0;
+				i++;
+			}
+			
+			Litteral lastChoice = C[idC-1];
+			
+			int index = 0;
+			for (i = 0 ; i < (CC.size() - 1) ; i++) {
+				if (CC.get(i) == 2) {
+					Litteral l = C[index];
+					Litteral nl = negation(sat, l);
+					
+					if ((P1[nl.getId()] == 1 && P2[l.getId()] == 1) ||
+						(P2[nl.getId()] == 1 && P1[l.getId()] == 1)) {
+						
+						for (int k = 0 ; k < PA.length ; k++) {
+							if (PA[k] == null) break;
+							Litteral l2 = PA[k];
+							
+						}
+						
+					}
+					
+					index += 2;
+				} else {
+					
+				}
+			}
+			
+			clearArray(L1);
+			clearArray(L2);
 		}
 		
 	}
@@ -1194,8 +1267,8 @@ public class Solver {
 			i ++;
 		}
 
-		ArrayList<Integer> CP = new ArrayList<Integer>();
-		ArrayList<Integer> CC = new ArrayList<Integer>();
+		//ArrayList<Integer> CP = new ArrayList<Integer>();
+		//ArrayList<Integer> CC = new ArrayList<Integer>();
 		
 		/*
 		 * Initialise variables for symmetries
@@ -1218,6 +1291,8 @@ public class Solver {
 		 */
 		reason = new ArrayList<ArrayList<Cause>>();
 		decisionLevel = 1;
+		P1 = new int[sat.getNbVariables() * 2];
+		P2 = new int[sat.getNbVariables() * 2];
 		
 		while (true) {		
 			switch (action) {
@@ -1512,27 +1587,13 @@ public class Solver {
 		}
 		
 		long begin = System.currentTimeMillis();
-		flagSymetries = true;
+		flagSymetries = false;
 		//BinCSP csp = Generator.generateUncompleteGraphColoration(20, 3, 0.3);
-		BinCSP csp = Generator.generateCompleteGraphColoration(50,5);
-		//BinCSP csp = Generator.generatePigeons(10, 9);
+		//BinCSP csp = Generator.generateCompleteGraphColoration(50,5);
+		BinCSP csp = Generator.generatePigeons(4, 3);
 		solve(csp); 
 		BinCSP.exportToXCSP3(csp, "output.xml"); 
 		long end = System.currentTimeMillis();
-		finalTime = end - begin;
-		displayTime();
-		
-		System.out.println("#########################################");
-		
-		nbNodes = 0;
-		clearX();
-		clearY();
-		resetTimer();
-		
-		begin = System.currentTimeMillis();
-		flagSymetries = false;
-		solve(csp); 
-		end = System.currentTimeMillis();
 		finalTime = end - begin;
 		displayTime();
 	}

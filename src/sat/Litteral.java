@@ -6,6 +6,7 @@ public class Litteral {
 
 	private int id;
 	private ArrayList<Clause> occurences;
+	private int idVariable;
 	
 	public Litteral(int id) {
 		this.id = id;
