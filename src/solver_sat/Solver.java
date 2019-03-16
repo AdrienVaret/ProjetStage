@@ -89,6 +89,7 @@ public class Solver {
 	 * Variables used for clause learning
 	 */
 	static ArrayList<ArrayList<Cause>> reason;
+	static ArrayList<ArrayList<Cause>> G1, G2;
 	static int decisionLevel;
 	static int[] P1;
 	static int[] P2;
@@ -819,13 +820,6 @@ public class Solver {
 		restoreTime += time;
 	}
 	
-	public static boolean sameVariable(BinCSP csp, SAT sat, Litteral l1, Litteral l2) {
-		
-		
-		
-		return true;
-	}
-	
 	public static void propagationAll(SAT sat, Litteral [] L1, Litteral [] L2, int [] shift) {
 		boolean result1 = propagation(sat, L1, 2, 1, false);
 		restoreAll(sat, X, shift);
@@ -858,6 +852,8 @@ public class Solver {
 			PA = LP.clone();
 			iPA = LP.length;
 			
+			//teste l'implication des précédents points de choix dans les littéraux propagés
+			
 			int i = 0;
 			while (PA[i] != null) {
 				int index = PA[i].getId();
@@ -866,29 +862,49 @@ public class Solver {
 				i++;
 			}
 			
-			Litteral lastChoice = C[idC-1];
+			Litteral lastChoice = couple.getV1();
 			
 			int index = 0;
 			for (i = 0 ; i < (CC.size() - 1) ; i++) {
 				if (CC.get(i) == 2) {
-					Litteral l = C[index];
-					Litteral nl = negation(sat, l);
+					Litteral l0 = C[index];
+					Litteral nl0 = negation(sat, l0);
+					Litteral l1 = C[index + 1];
 					
-					if ((P1[nl.getId()] == 1 && P2[l.getId()] == 1) ||
-						(P2[nl.getId()] == 1 && P1[l.getId()] == 1)) {
+					
+					if ((P1[nl0.getId()] == 1 && P2[l0.getId()] == 1) ||
+						(P2[nl0.getId()] == 1 && P1[l0.getId()] == 1)) {
 						
 						for (int k = 0 ; k < PA.length ; k++) {
 							if (PA[k] == null) break;
 							Litteral l2 = PA[k];
-							
+							if (lastChoice != null && (lastChoice.getIdVariable() != l2.getIdVariable())) {
+								Cause cause = new Cause(new GenericCouple<Litteral>(l0, l1), decisionLevel);
+								reason.get(PA[k].getId()).add(cause);
+							}
 						}
-						
 					}
 					
 					index += 2;
 				} else {
 					
 				}
+			}
+			
+			//connecte tous les littéraux propagés au point de choix courant
+			
+			if (CC.get(idCC) == 2) {
+				//Litteral choice1 = C[idCC - 2];
+				//Litteral choice2 = C[idCC - 1];
+				
+				i = 0;
+				while (PA[i] != null) {
+					index = PA[i].getId();
+					reason.get(index).add(new Cause(couple, decisionLevel));
+					i++;
+				}
+			} else {
+				
 			}
 			
 			clearArray(L1);
@@ -1290,6 +1306,11 @@ public class Solver {
 		 * Initialize variables for learning
 		 */
 		reason = new ArrayList<ArrayList<Cause>>();
+		
+		for (int j = 0 ; j < sat.getNbVariables() * 2 ; j++) {
+			reason.add(new ArrayList<Cause>());
+		}
+		
 		decisionLevel = 1;
 		P1 = new int[sat.getNbVariables() * 2];
 		P2 = new int[sat.getNbVariables() * 2];

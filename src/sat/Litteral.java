@@ -8,8 +8,9 @@ public class Litteral {
 	private ArrayList<Clause> occurences;
 	private int idVariable;
 	
-	public Litteral(int id) {
+	public Litteral(int id, int idVariable) {
 		this.id = id;
+		this.idVariable = idVariable;
 		occurences = new ArrayList<Clause>();
 	}
 
@@ -23,6 +24,10 @@ public class Litteral {
 	
 	public void removeOccurence(Clause clause) {
 		occurences.remove(clause);
+	}
+	
+	public int getIdVariable() {
+		return idVariable;
 	}
 	
 	@Override

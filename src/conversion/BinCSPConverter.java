@@ -366,14 +366,15 @@ public class BinCSPConverter {
 		ArrayList<Integer> t = new ArrayList<Integer>();
 		t.add(0);
 		
+		int idVariable = 0;
 		for (Variable variable : newCSP.getVariables()) {
 			sum += variable.getDomain().size() * 2;
 			t.add(sum);
 			Clause clause = new Clause(nbClauses);
 			
 			for (String value : variable.getDomain().getValues()) {
-				Litteral x = new Litteral(i);
-				Litteral nx = new Litteral(i+1);
+				Litteral x = new Litteral(i, idVariable);
+				Litteral nx = new Litteral(i+1, idVariable);
 				litterals.add(x);
 				litterals.add(nx);
 				clause.addLitteral(x);
@@ -382,6 +383,7 @@ public class BinCSPConverter {
 			}
 			clauses.add(clause);
 			nbClauses ++;
+			idVariable ++;
 		}
 		
 		int size = clauses.size();
