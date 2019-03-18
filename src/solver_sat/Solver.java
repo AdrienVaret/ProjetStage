@@ -665,10 +665,6 @@ public class Solver {
 									Litteral l1 = L[indexLitteral];
 									Litteral l2 = L[indexLitteral-1];
 								
-									if (l1 == null) {
-										System.out.println("");
-									}
-								
 									ArrayList<Cause> causes = new ArrayList<Cause>();
 									causes.addAll(getCauses(l1, G));
 									causes.addAll(getCauses(l2, G));
@@ -922,7 +918,15 @@ public class Solver {
 			PA = X.clone();
 			iPA = X.length;
 			
-			//ArrayList<Cause>
+			ArrayList<Cause> causesConflict = getCauses(conflict, G2);
+			
+			int i = 0;
+			while(PA[i] != null) {
+				Litteral l = PA[i];
+				ArrayList<Cause> causes = getCauses(l, G1);
+				reason.get(l.getId()).addAll(causesConflict);
+				reason.get(l.getId()).addAll(causes);
+			}
 			
 			clearArray(L1);
 			clearArray(L2);
@@ -932,6 +936,17 @@ public class Solver {
 		else if (!result1 && result2) {
 			PA = Y.clone();
 			iPA = Y.length;
+			
+			ArrayList<Cause> causesConflict = getCauses(conflict, G1);
+			
+			int i = 0;
+			while(PA[i] != null) {
+				Litteral l = PA[i];
+				ArrayList<Cause> causes = getCauses(l, G2);
+				reason.get(l.getId()).addAll(causesConflict);
+				reason.get(l.getId()).addAll(causes);
+			}
+			
 			clearArray(L1);
 			clearArray(L2);
 			clearGraph(G1);
@@ -940,6 +955,12 @@ public class Solver {
 		else if (!result1 && !result2) {
 			PA = null;
 			iPA = 0;
+			
+			ArrayList<Cause> causesConflict = new ArrayList<Cause>();
+			causesConflict.addAll(getCauses(conflict, G1));
+			causesConflict.addAll(getCauses(conflict, G1));
+			reason.get(conflict.getId()).addAll(causesConflict);
+			
 			clearArray(L1);
 			clearArray(L2);
 			clearGraph(G1);
@@ -955,11 +976,6 @@ public class Solver {
 				ArrayList<Cause> causes = new ArrayList<Cause>();
 				causes.addAll(getCauses(l, G1));
 				causes.addAll(getCauses(l, G2));
-				
-				//Set<Cause> set = new LinkedHashSet<>();
-				//set.addAll(causes);
-				//causes.clear();
-				//causes.addAll(set);
 				
 				reason.get(l.getId()).addAll(causes);
 				
@@ -1318,15 +1334,18 @@ public class Solver {
 		conflict  = new Litteral(sat.getNbVariables() * 2, -1);
 	}
 	
-	public static ArrayList<Cause> getCauses(Litteral l, ArrayList<ArrayList<Cause>> graph){
+	public static ArrayList<Cause> getCauses(Litteral l, ArrayList<ArrayList<Cause>> graph/*, int [] occurences*/){
 		
 		ArrayList<Cause> causes = new ArrayList<Cause>();
 		
 		for (Cause cause : graph.get(l.getId())) {
 			if (cause.getCouple().getV2() != null) {
-				causes.add(cause);	
+				//if (occurences[cause.getLevel()] == 0) {
+					causes.add(cause);
+					//occurences[cause.getLevel()] = 1;
+				//}
 			} else {
-				causes.addAll(getCauses(cause.getCouple().getV1(), graph));
+				causes.addAll(getCauses(cause.getCouple().getV1(), graph/*, occurences*/));
 			}
 			
 		}
