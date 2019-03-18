@@ -97,9 +97,17 @@ public class Solver {
 	static int[] P2;
 	static Litteral conflict;
 	
+	
 	/*
 	 * Utilitaries
 	 */
+	
+	public static void clearArray(int [] array) {
+		for (int i = 0 ; i < array.length ; i++) {
+			array[i] = 0;
+		}
+	}
+	
 	public static void clearGraph(ArrayList<ArrayList<Cause>> G) {
 		for (ArrayList<Cause> causes : G) {
 			causes.clear();
@@ -606,7 +614,9 @@ public class Solver {
 		int [] propagateds = new int [sat.getNbVariables() * 2];
 		int [] statesClauses = new int [sat.getNbClauses()];
 		int idLitteral = 0;
-	
+		
+		int [] occurences = new int [decisionLevel];
+		
 		ArrayList<ArrayList<Cause>> G;
 		if (set == 1) G = G1;
 		else G = G2;
@@ -666,8 +676,9 @@ public class Solver {
 									Litteral l2 = L[indexLitteral-1];
 								
 									ArrayList<Cause> causes = new ArrayList<Cause>();
-									causes.addAll(getCauses(l1, G));
-									causes.addAll(getCauses(l2, G));
+									clearArray(occurences);
+									causes.addAll(getCauses(l1, G, occurences));
+									causes.addAll(getCauses(l2, G, occurences));
 								
 									G.get(conflict.getId()).addAll(causes);
 								}
@@ -696,20 +707,23 @@ public class Solver {
 								if (updateGraph) {
 									if (y.getId() % 2 == 0) {
 										//G.get(x.getId()).add(new Cause(couple, decisionLevel));
+										clearArray(occurences);
 										for (Litteral litteral : sat.getClauses().get(y.getIdVariable()).getLitterals()) {
 											if (!litteral.equals(y)) {
 												Litteral neg = negation(sat, litteral);
 												ArrayList<Cause> causes = new ArrayList<Cause>();
-												if (propagateds[neg.getId()] == 0)
-													causes.addAll(getCauses(neg, reason));
-												else
-													causes.addAll(getCauses(neg, G));
+												if (propagateds[neg.getId()] == 0) {
+													causes.addAll(getCauses(neg, reason, occurences));
+												} else {
+													causes.addAll(getCauses(neg, G, occurences));
+												}
 												G.get(y.getId()).addAll(causes);
 											}
 										}
 									} else {
 										//rappel : y est propagé par l
-										ArrayList<Cause> causes = getCauses(l, G);
+										clearArray(occurences);
+										ArrayList<Cause> causes = getCauses(l, G, occurences);
 										G.get(y.getId()).addAll(causes);
 									}
 								}
@@ -732,10 +746,11 @@ public class Solver {
 									indexLitteral ++;
 									Litteral l1 = L[indexLitteral];
 									Litteral l2 = L[indexLitteral-1];
-								
+									
+									clearArray(occurences);
 									ArrayList<Cause> causes = new ArrayList<Cause>();
-									causes.addAll(getCauses(l1, G));
-									causes.addAll(getCauses(l2, G));
+									causes.addAll(getCauses(l1, G, occurences));
+									causes.addAll(getCauses(l2, G, occurences));
 								
 									G.get(conflict.getId()).addAll(causes);
 								}
@@ -764,20 +779,22 @@ public class Solver {
 								if (updateGraph) {
 									if (x.getId() % 2 == 0) {
 										//G.get(x.getId()).add(new Cause(couple, decisionLevel));
+										clearArray(occurences);
 										for (Litteral litteral : sat.getClauses().get(x.getIdVariable()).getLitterals()) {
 											if (!litteral.equals(x)) {
 												Litteral neg = negation(sat, litteral);
 												ArrayList<Cause> causes = new ArrayList<Cause>();
 												if (propagateds[neg.getId()] == 0)
-													causes.addAll(getCauses(neg, reason));
+													causes.addAll(getCauses(neg, reason, occurences));
 												else
-													causes.addAll(getCauses(neg, G));
+													causes.addAll(getCauses(neg, G, occurences));
 												G.get(x.getId()).addAll(causes);
 											}
 										}
 									} else {
 										//rappel : y est propagé par l
-										ArrayList<Cause> causes = getCauses(l, G);
+										clearArray(occurences);
+										ArrayList<Cause> causes = getCauses(l, G, occurences);
 										G.get(x.getId()).addAll(causes);
 									}
 								}
@@ -905,10 +922,13 @@ public class Solver {
 		restoreTime += time;
 	}
 	
+	
 	public static void propagationAll(SAT sat, Litteral [] L1, Litteral [] L2, int [] shift) {
 		boolean result1 = propagation(sat, L1, 2, 1, true);
 		restoreAll(sat, X, shift);
 		boolean result2 = propagation(sat, L2, 2, 2, true);
+		
+		int [] occurences = new int [decisionLevel];
 		
 		restoreAll(sat, Y, shift);
 		
@@ -923,9 +943,26 @@ public class Solver {
 			int i = 0;
 			while(PA[i] != null) {
 				Litteral l = PA[i];
+				clearArray(occurences);
 				ArrayList<Cause> causes = getCauses(l, G1);
-				reason.get(l.getId()).addAll(causesConflict);
-				reason.get(l.getId()).addAll(causes);
+				
+				for (Cause cause : causesConflict) {
+					if (occurences[cause.getLevel()-1] == 0) {
+						reason.get(l.getId()).add(cause);
+						occurences[cause.getLevel()-1] = 1;
+					}
+				}
+				
+				for (Cause cause : causes) {
+					if (occurences[cause.getLevel()-1] == 0) {
+						reason.get(l.getId()).add(cause);
+						occurences[cause.getLevel()-1] = 1;
+					}
+				}
+				
+				//reason.get(l.getId()).addAll(causesConflict);
+				//reason.get(l.getId()).addAll(causes);
+				i++;
 			}
 			
 			clearArray(L1);
@@ -942,9 +979,26 @@ public class Solver {
 			int i = 0;
 			while(PA[i] != null) {
 				Litteral l = PA[i];
+				clearArray(occurences);
 				ArrayList<Cause> causes = getCauses(l, G2);
-				reason.get(l.getId()).addAll(causesConflict);
-				reason.get(l.getId()).addAll(causes);
+				
+				for (Cause cause : causesConflict) {
+					if (occurences[cause.getLevel()-1] == 0) {
+						reason.get(l.getId()).add(cause);
+						occurences[cause.getLevel()-1] = 1;
+					}
+				}
+				
+				for (Cause cause : causes) {
+					if (occurences[cause.getLevel()-1] == 0) {
+						reason.get(l.getId()).add(cause);
+						occurences[cause.getLevel()-1] = 1;
+					}
+				}
+				
+				//reason.get(l.getId()).addAll(causesConflict);
+				//reason.get(l.getId()).addAll(causes);
+				i++;
 			}
 			
 			clearArray(L1);
@@ -957,8 +1011,10 @@ public class Solver {
 			iPA = 0;
 			
 			ArrayList<Cause> causesConflict = new ArrayList<Cause>();
-			causesConflict.addAll(getCauses(conflict, G1));
-			causesConflict.addAll(getCauses(conflict, G1));
+			clearArray(occurences);
+			causesConflict.addAll(getCauses(conflict, G1, occurences));
+			causesConflict.addAll(getCauses(conflict, G1, occurences));
+			
 			reason.get(conflict.getId()).addAll(causesConflict);
 			
 			clearArray(L1);
@@ -973,9 +1029,11 @@ public class Solver {
 			int i = 0;
 			while(PA[i] != null) {
 				Litteral l = PA[i];
+				
 				ArrayList<Cause> causes = new ArrayList<Cause>();
-				causes.addAll(getCauses(l, G1));
-				causes.addAll(getCauses(l, G2));
+				clearArray(occurences);
+				causes.addAll(getCauses(l, G1, occurences));
+				causes.addAll(getCauses(l, G2, occurences));
 				
 				reason.get(l.getId()).addAll(causes);
 				
@@ -1334,18 +1392,34 @@ public class Solver {
 		conflict  = new Litteral(sat.getNbVariables() * 2, -1);
 	}
 	
-	public static ArrayList<Cause> getCauses(Litteral l, ArrayList<ArrayList<Cause>> graph/*, int [] occurences*/){
+	public static ArrayList<Cause> getCauses(Litteral l, ArrayList<ArrayList<Cause>> graph, int [] occurences){
 		
 		ArrayList<Cause> causes = new ArrayList<Cause>();
 		
 		for (Cause cause : graph.get(l.getId())) {
 			if (cause.getCouple().getV2() != null) {
-				//if (occurences[cause.getLevel()] == 0) {
+				if (occurences[cause.getLevel()-1] == 0) {
 					causes.add(cause);
-					//occurences[cause.getLevel()] = 1;
-				//}
+					occurences[cause.getLevel()-1] = 1;
+				}
 			} else {
-				causes.addAll(getCauses(cause.getCouple().getV1(), graph/*, occurences*/));
+				causes.addAll(getCauses(cause.getCouple().getV1(), graph, occurences));
+			}
+			
+		}
+		
+		return causes;
+	}
+	
+	public static ArrayList<Cause> getCauses(Litteral l, ArrayList<ArrayList<Cause>> graph){
+		
+		ArrayList<Cause> causes = new ArrayList<Cause>();
+		
+		for (Cause cause : graph.get(l.getId())) {
+			if (cause.getCouple().getV2() != null) {
+				causes.add(cause);
+			} else {
+				causes.addAll(getCauses(cause.getCouple().getV1(), graph));
 			}
 			
 		}
