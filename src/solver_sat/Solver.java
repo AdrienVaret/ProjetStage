@@ -6,6 +6,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import bincsp.BinCSP;
 import bincsp.Variable;
@@ -93,10 +95,16 @@ public class Solver {
 	static int decisionLevel;
 	static int[] P1;
 	static int[] P2;
+	static Litteral conflict;
 	
 	/*
 	 * Utilitaries
 	 */
+	public static void clearGraph(ArrayList<ArrayList<Cause>> G) {
+		for (ArrayList<Cause> causes : G) {
+			causes.clear();
+		}
+	}
 	
 	public static void clearP1() {
 		for (int i = 0 ; i < P1.length ; i++) {
@@ -597,8 +605,11 @@ public class Solver {
 		long begin = System.currentTimeMillis();
 		int [] propagateds = new int [sat.getNbVariables() * 2];
 		int [] statesClauses = new int [sat.getNbClauses()];
-				
 		int idLitteral = 0;
+	
+		ArrayList<ArrayList<Cause>> G;
+		if (set == 1) G = G1;
+		else G = G2;
 		
 		for (Litteral l : L) {
 			if (l == null) break;
@@ -609,10 +620,14 @@ public class Solver {
 				P1[l.getId()] = 1;
 				X[iX] = l;
 				iX ++;
+				if (updateGraph)
+					G1.get(l.getId()).add(new Cause(couple, decisionLevel));
 			} else if (set == 2) {
 				P2[l.getId()] = 1;
 				Y[iY] = l;
 				iY ++;
+				if (updateGraph)
+					G2.get(l.getId()).add(new Cause(couple, decisionLevel));
 			}
 		}
 		
@@ -634,6 +649,7 @@ public class Solver {
 						/**/
 						if (y == null) {
 							result.setState(false);
+							//ICI : ajouter le littéral conflit
 							return false;
 						}
 						/**/
@@ -642,6 +658,18 @@ public class Solver {
 								statesClauses[c.getId()] = 1;
 							else {
 								result.setState(false);
+								
+								indexLitteral ++;
+								
+								Litteral l1 = L[indexLitteral];
+								Litteral l2 = L[indexLitteral-1];
+								
+								ArrayList<Cause> causes = new ArrayList<Cause>();
+								causes.addAll(getCauses(l1, G));
+								causes.addAll(getCauses(l2, G));
+								
+								G.get(conflict.getId()).addAll(causes);
+								
 								return false;
 							}
 						} else {
@@ -663,10 +691,31 @@ public class Solver {
 									iY ++;
 								}
 								
+								if (updateGraph) {
+									if (y.getId() % 2 == 0) {
+										//G.get(x.getId()).add(new Cause(couple, decisionLevel));
+										for (Litteral litteral : sat.getClauses().get(y.getIdVariable()).getLitterals()) {
+											if (!litteral.equals(y)) {
+												Litteral neg = negation(sat, litteral);
+												ArrayList<Cause> causes = new ArrayList<Cause>();
+												if (propagateds[neg.getId()] == 0)
+													causes.addAll(getCauses(neg, reason));
+												else
+													causes.addAll(getCauses(neg, G));
+												G.get(y.getId()).addAll(causes);
+											}
+										}
+									} else {
+										//rappel : y est propagé par l
+										ArrayList<Cause> causes = getCauses(l, G);
+										G.get(y.getId()).addAll(causes);
+									}
+								}
+								
 								if (action == 2 && result.get(y.getId()) == 2) {
 									LP[iLP] = y;
 									iLP ++;
-								}							
+								}						
 								
 							}
 						}
@@ -676,6 +725,16 @@ public class Solver {
 								statesClauses[c.getId()] = 1;
 							else {
 								result.setState(false);
+								indexLitteral ++;
+								Litteral l1 = L[indexLitteral];
+								Litteral l2 = L[indexLitteral-1];
+								
+								ArrayList<Cause> causes = new ArrayList<Cause>();
+								causes.addAll(getCauses(l1, G));
+								causes.addAll(getCauses(l2, G));
+								
+								G.get(conflict.getId()).addAll(causes);
+								
 								return false;
 							}
 						} else {
@@ -695,6 +754,27 @@ public class Solver {
 									if (x != null) P2[x.getId()] = 1;
 									Y[iY] = x;
 									iY ++;
+								}
+								
+								if (updateGraph) {
+									if (x.getId() % 2 == 0) {
+										//G.get(x.getId()).add(new Cause(couple, decisionLevel));
+										for (Litteral litteral : sat.getClauses().get(x.getIdVariable()).getLitterals()) {
+											if (!litteral.equals(x)) {
+												Litteral neg = negation(sat, litteral);
+												ArrayList<Cause> causes = new ArrayList<Cause>();
+												if (propagateds[neg.getId()] == 0)
+													causes.addAll(getCauses(neg, reason));
+												else
+													causes.addAll(getCauses(neg, G));
+												G.get(x.getId()).addAll(causes);
+											}
+										}
+									} else {
+										//rappel : y est propagé par l
+										ArrayList<Cause> causes = getCauses(l, G);
+										G.get(x.getId()).addAll(causes);
+									}
 								}
 								
 								if (action == 2 && result.get(x.getId()) == 2) {
@@ -821,9 +901,9 @@ public class Solver {
 	}
 	
 	public static void propagationAll(SAT sat, Litteral [] L1, Litteral [] L2, int [] shift) {
-		boolean result1 = propagation(sat, L1, 2, 1, false);
+		boolean result1 = propagation(sat, L1, 2, 1, true);
 		restoreAll(sat, X, shift);
-		boolean result2 = propagation(sat, L2, 2, 2, false);
+		boolean result2 = propagation(sat, L2, 2, 2, true);
 		//clearArray(L1);
 		//clearArray(L2);
 		restoreAll(sat, Y, shift);
@@ -835,80 +915,50 @@ public class Solver {
 			iPA = X.length;
 			clearArray(L1);
 			clearArray(L2);
+			clearGraph(G1);
+			clearGraph(G2);
 		}
 		else if (!result1 && result2) {
 			PA = Y.clone();
 			iPA = Y.length;
 			clearArray(L1);
 			clearArray(L2);
+			clearGraph(G1);
+			clearGraph(G2);
 		}
 		else if (!result1 && !result2) {
 			PA = null;
 			iPA = 0;
 			clearArray(L1);
 			clearArray(L2);
+			clearGraph(G1);
+			clearGraph(G2);
 		}
 		else {
 			PA = LP.clone();
 			iPA = LP.length;
 			
-			//teste l'implication des précédents points de choix dans les littéraux propagés
-			
 			int i = 0;
-			while (PA[i] != null) {
-				int index = PA[i].getId();
-				P1[index] = 0;
-				P2[index] = 0;
+			while(PA[i] != null) {
+				Litteral l = PA[i];
+				ArrayList<Cause> causes = new ArrayList<Cause>();
+				causes.addAll(getCauses(l, G1));
+				causes.addAll(getCauses(l, G2));
+				
+				//Set<Cause> set = new LinkedHashSet<>();
+				//set.addAll(causes);
+				//causes.clear();
+				//causes.addAll(set);
+				
+				reason.get(l.getId()).addAll(causes);
+				
 				i++;
-			}
-			
-			Litteral lastChoice = couple.getV1();
-			
-			int index = 0;
-			for (i = 0 ; i < (CC.size() - 1) ; i++) {
-				if (CC.get(i) == 2) {
-					Litteral l0 = C[index];
-					Litteral nl0 = negation(sat, l0);
-					Litteral l1 = C[index + 1];
-					
-					
-					if ((P1[nl0.getId()] == 1 && P2[l0.getId()] == 1) ||
-						(P2[nl0.getId()] == 1 && P1[l0.getId()] == 1)) {
-						
-						for (int k = 0 ; k < PA.length ; k++) {
-							if (PA[k] == null) break;
-							Litteral l2 = PA[k];
-							if (lastChoice != null && (lastChoice.getIdVariable() != l2.getIdVariable())) {
-								Cause cause = new Cause(new GenericCouple<Litteral>(l0, l1), decisionLevel);
-								reason.get(PA[k].getId()).add(cause);
-							}
-						}
-					}
-					
-					index += 2;
-				} else {
-					
-				}
-			}
-			
-			//connecte tous les littéraux propagés au point de choix courant
-			
-			if (CC.get(idCC) == 2) {
-				//Litteral choice1 = C[idCC - 2];
-				//Litteral choice2 = C[idCC - 1];
-				
-				i = 0;
-				while (PA[i] != null) {
-					index = PA[i].getId();
-					reason.get(index).add(new Cause(couple, decisionLevel));
-					i++;
-				}
-			} else {
-				
 			}
 			
 			clearArray(L1);
 			clearArray(L2);
+			clearGraph(G1);
+			clearGraph(G2);
 		}
 		
 	}
@@ -1236,16 +1286,7 @@ public class Solver {
 		return 1;
 	}
 	
-	/**
-	 * Solve the csp
-	 * @param csp
-	 */
-	public static void solve(BinCSP csp) {
-
-		long begin = System.currentTimeMillis();
-		
-		SAT sat = BinCSPConverter.directEncoding(csp);
-		
+	public static void initialize(SAT sat, BinCSP csp) {
 		X  = new Litteral[sat.getNbVariables() * 2];
 		Y  = new Litteral[sat.getNbVariables() * 2];
 		LP = new Litteral[sat.getNbVariables() * 2];
@@ -1262,6 +1303,37 @@ public class Solver {
 		result = new ResultPropagation(sat.getNbVariables() * 2);
 		
 		occ = new int [sat.getNbVariables() * 2][sat.getMaxOccurences() + 2];
+		
+		conflict  = new Litteral(sat.getNbVariables() * 2, -1);
+	}
+	
+	public static ArrayList<Cause> getCauses(Litteral l, ArrayList<ArrayList<Cause>> graph){
+		
+		ArrayList<Cause> causes = new ArrayList<Cause>();
+		
+		for (Cause cause : graph.get(l.getId())) {
+			if (cause.getCouple().getV2() != null) {
+				causes.add(cause);	
+			} else {
+				causes.addAll(getCauses(cause.getCouple().getV1(), graph));
+			}
+			
+		}
+		
+		return causes;
+	}
+	
+	/**
+	 * Solve the csp
+	 * @param csp
+	 */
+	public static void solve(BinCSP csp) {
+
+		long begin = System.currentTimeMillis();
+		
+		SAT sat = BinCSPConverter.directEncoding(csp);
+		
+		initialize(sat, csp);
 		initializeOcc(sat);
 		
 		variablesStates = new int[csp.getNbVariables()];
@@ -1283,9 +1355,6 @@ public class Solver {
 			i ++;
 		}
 
-		//ArrayList<Integer> CP = new ArrayList<Integer>();
-		//ArrayList<Integer> CC = new ArrayList<Integer>();
-		
 		/*
 		 * Initialise variables for symmetries
 		 */
@@ -1306,14 +1375,19 @@ public class Solver {
 		 * Initialize variables for learning
 		 */
 		reason = new ArrayList<ArrayList<Cause>>();
+		G1 = new ArrayList<ArrayList<Cause>>();
+		G2 = new ArrayList<ArrayList<Cause>>();
 		
-		for (int j = 0 ; j < sat.getNbVariables() * 2 ; j++) {
+		for (int j = 0 ; j <= sat.getNbVariables() * 2 ; j++) {
 			reason.add(new ArrayList<Cause>());
+			G1.add(new ArrayList<Cause>());
+			G2.add(new ArrayList<Cause>());
 		}
 		
 		decisionLevel = 1;
 		P1 = new int[sat.getNbVariables() * 2];
 		P2 = new int[sat.getNbVariables() * 2];
+		
 		
 		while (true) {		
 			switch (action) {
@@ -1400,7 +1474,7 @@ public class Solver {
 					}
 				} else {
 					action = Action.HEURISTIC;
-					propagation(sat, PA, 0, 1, true);
+					propagation(sat, PA, 0, 1, false);
 					clearPA();
 					
 					for (int index = 0 ; index < iX ; index++) {

@@ -25,4 +25,10 @@ public class Cause {
 		return "<" + couple.toString() + ", " + Integer.toString(level) + ">";
 	}
 	
+	@Override
+	public boolean equals(Object o) {
+		Cause c = (Cause) o;
+		return (c.getCouple().equals(couple) && c.getLevel() == level);
+	}
+	
 }
