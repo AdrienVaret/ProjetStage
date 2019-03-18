@@ -661,14 +661,20 @@ public class Solver {
 								
 								indexLitteral ++;
 								
-								Litteral l1 = L[indexLitteral];
-								Litteral l2 = L[indexLitteral-1];
+								if (updateGraph) {
+									Litteral l1 = L[indexLitteral];
+									Litteral l2 = L[indexLitteral-1];
 								
-								ArrayList<Cause> causes = new ArrayList<Cause>();
-								causes.addAll(getCauses(l1, G));
-								causes.addAll(getCauses(l2, G));
+									if (l1 == null) {
+										System.out.println("");
+									}
 								
-								G.get(conflict.getId()).addAll(causes);
+									ArrayList<Cause> causes = new ArrayList<Cause>();
+									causes.addAll(getCauses(l1, G));
+									causes.addAll(getCauses(l2, G));
+								
+									G.get(conflict.getId()).addAll(causes);
+								}
 								
 								return false;
 							}
@@ -725,15 +731,18 @@ public class Solver {
 								statesClauses[c.getId()] = 1;
 							else {
 								result.setState(false);
-								indexLitteral ++;
-								Litteral l1 = L[indexLitteral];
-								Litteral l2 = L[indexLitteral-1];
 								
-								ArrayList<Cause> causes = new ArrayList<Cause>();
-								causes.addAll(getCauses(l1, G));
-								causes.addAll(getCauses(l2, G));
+								if (updateGraph) {
+									indexLitteral ++;
+									Litteral l1 = L[indexLitteral];
+									Litteral l2 = L[indexLitteral-1];
 								
-								G.get(conflict.getId()).addAll(causes);
+									ArrayList<Cause> causes = new ArrayList<Cause>();
+									causes.addAll(getCauses(l1, G));
+									causes.addAll(getCauses(l2, G));
+								
+									G.get(conflict.getId()).addAll(causes);
+								}
 								
 								return false;
 							}
@@ -904,8 +913,7 @@ public class Solver {
 		boolean result1 = propagation(sat, L1, 2, 1, true);
 		restoreAll(sat, X, shift);
 		boolean result2 = propagation(sat, L2, 2, 2, true);
-		//clearArray(L1);
-		//clearArray(L2);
+		
 		restoreAll(sat, Y, shift);
 		
 		result.clear();
@@ -913,6 +921,9 @@ public class Solver {
 		if (result1 && !result2) {
 			PA = X.clone();
 			iPA = X.length;
+			
+			//ArrayList<Cause>
+			
 			clearArray(L1);
 			clearArray(L2);
 			clearGraph(G1);
@@ -1453,6 +1464,8 @@ public class Solver {
 				
 				propagationAll(sat, L1, L2, shift);
 				
+				decisionLevel++;
+				
 				clearX(); 
 				clearY(); 
 				clearLP();
@@ -1551,6 +1564,9 @@ public class Solver {
 				L1[0] = x;
 				
 				boolean r = propagation(sat, L1, 0, 1, true); 
+				
+				//TODO: mettre à jour le graphe d'implication (ici un seul sous graphe donc simple ...)
+				decisionLevel ++;
 				
 				clearArray(L1);
 				
