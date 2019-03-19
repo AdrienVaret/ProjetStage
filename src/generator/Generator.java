@@ -11,10 +11,62 @@ import bincsp.Domain;
 import bincsp.Relation;
 import bincsp.Relation.TypeRelation;
 import bincsp.Variable;
+import conversion.BinCSPConverter;
+import sat.SAT;
 
 
 public class Generator {
 
+	public static BinCSP generateRandomCSPSupport(int nbVariables, int domainSize) {
+		
+		ArrayList<Variable> variables = new ArrayList<Variable>();
+		ArrayList<Domain> domains = new ArrayList<Domain>();
+		ArrayList<Constraint> constraints = new ArrayList<Constraint>();
+		ArrayList<Relation> relations = new ArrayList<Relation>();
+		
+		int idVar = 0;
+		for (int i = 0 ; i < nbVariables ; i++) {
+			ArrayList<String> values = new ArrayList<String>();
+			for (int j = 0 ; j < domainSize ; j++) {
+				values.add(Integer.toString(idVar));
+				idVar ++;
+			}
+			domains.add(new Domain("D"+Integer.toString(i), values));
+		}
+		
+		for (int i = 0 ; i < nbVariables ; i++) {
+			Variable variable = new Variable("X"+Integer.toString(i), domains.get(i), i);
+			variables.add(variable);
+		}
+		
+		for (int i = 0 ; i < nbVariables ; i++) {
+			for (int j = i+1 ; j < nbVariables ; j++) {
+				Variable x = variables.get(i);
+				Variable y = variables.get(j);
+				
+				int nbConstraints = ThreadLocalRandom.current().nextInt(1, nbVariables);
+				ArrayList<Couple> couples = new ArrayList<Couple>();
+				
+				for (int k = 0 ; k < nbConstraints ; k++) {
+					int a = ThreadLocalRandom.current().nextInt(1, nbVariables);
+					int b = ThreadLocalRandom.current().nextInt(1, nbVariables);
+					Couple couple = new Couple(x.getDomain().get(a), y.getDomain().get(b));
+					if (!couples.contains(couple)) 
+						couples.add(couple);
+				}
+				
+				Relation relation = new Relation(TypeRelation.R_SUPPORTS, couples);
+				relations.add(relation);
+				constraints.add(new Constraint(x, y, relation));
+				
+				
+			}
+		}
+		
+		return new BinCSP(variables.size(), domains.size(), constraints.size(), relations.size(),
+		          variables, domains, constraints, relations);
+	}
+	
 	public static BinCSP generateUncompleteGraphColoration(int nbVertexs, int nbColors, double density) {
 		
 		ArrayList<Variable> variables = new ArrayList<Variable>();
@@ -466,7 +518,10 @@ public class Generator {
 	}
 	
 	public static void main(String [] args) {
-		BinCSP csp = generateUncompleteGraphColoration(10, 3, 0.1);
+		BinCSP csp = generateRandomCSPSupport(3,3);
+		SAT sat = BinCSPConverter.supportEncoding(csp);
 		System.out.println(csp.toString());
+		System.out.println("#########");
+		System.out.println(sat.toString());
 	}
 }

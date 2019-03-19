@@ -1435,7 +1435,8 @@ public class Solver {
 
 		long begin = System.currentTimeMillis();
 		
-		SAT sat = BinCSPConverter.directEncoding(csp);
+		//SAT sat = BinCSPConverter.directEncoding(csp);
+		SAT sat = BinCSPConverter.supportEncoding(csp);
 		
 		initialize(sat, csp);
 		initializeOcc(sat);
@@ -1496,8 +1497,8 @@ public class Solver {
 		while (true) {		
 			switch (action) {
 				case HEURISTIC : 
-					//idClause = domHeuristic();
-					idClause = degHeuristic(csp);
+					idClause = domHeuristic();
+					//idClause = degHeuristic(csp);
 					/**/
 					if (flagSymetries && !flagNoMoreSymmetries) {
 						resultSymmetries = breakSymmetries(csp, sat, shift);
@@ -1794,7 +1795,8 @@ public class Solver {
 		flagSymetries = false;
 		//BinCSP csp = Generator.generateUncompleteGraphColoration(20, 3, 0.3);
 		//BinCSP csp = Generator.generateCompleteGraphColoration(50,5);
-		BinCSP csp = Generator.generatePigeons(4, 3);
+		//BinCSP csp = Generator.generatePigeons(4, 3);
+		BinCSP csp = Generator.generateRandomCSPSupport(4, 4);
 		solve(csp); 
 		BinCSP.exportToXCSP3(csp, "output.xml"); 
 		long end = System.currentTimeMillis();

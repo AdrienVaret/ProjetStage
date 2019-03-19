@@ -11,6 +11,7 @@ import sat.Clause;
 import sat.Litteral;
 import sat.SAT;
 import bincsp.Variable;
+import generator.Generator;
 import utils.CreateCSP;
 
 public class BinCSPConverter {
@@ -350,11 +351,7 @@ public class BinCSPConverter {
 		int [] occ = new int [2 * nbLitterals];
 		
 		BinCSP newCSP = convertToConflicts(csp);
-		//newCSP = shiftDomains(newCSP);
-		
-		//breakSymmetries2(newCSP);
 		newCSP = shiftDomains(newCSP);
-		//System.out.println(newCSP.toString());		
 		
 		ArrayList<Litteral> litterals = new ArrayList<Litteral>();
 		ArrayList<Clause> clauses = new ArrayList<Clause>();
@@ -430,5 +427,143 @@ public class BinCSPConverter {
 		}
 		
 		return new SAT(litterals.size()/2, clauses.size(), clauses, litterals, maxOcc);	
+	}
+	
+	public static boolean containsCouple(Relation relation, Couple couple) {
+		for (Couple c : relation.getCouples()) {
+			if (couple.getValue1().equals(c.getValue1()) && couple.getValue2().equals(c.getValue2()))
+				return true;
+		}
+		return false;
+	}
+	
+	public static SAT supportEncoding(BinCSP csp) {
+		
+		int nbLitterals = 0;
+		for (Variable v : csp.getVariables()) {
+			nbLitterals += v.getDomain().size();
+		}
+		
+		int [] occ = new int [2 * nbLitterals];
+		
+		//BinCSP newCSP = convertToConflicts(csp);
+		csp = shiftDomains(csp);
+		
+		ArrayList<Litteral> litterals = new ArrayList<Litteral>();
+		ArrayList<Clause> clauses = new ArrayList<Clause>();
+		int i = 0;
+		int sum = 0;
+		
+		int nbClauses = 0;
+		
+		ArrayList<Integer> t = new ArrayList<Integer>();
+		t.add(0);
+		
+		int idVariable = 0;
+		for (Variable variable : csp.getVariables()) {
+			//sum += variable.getDomain().size() * 2;
+			sum += variable.getDomain().size();
+			t.add(sum);
+			Clause clause = new Clause(nbClauses);
+			
+			for (String value : variable.getDomain().getValues()) {
+				Litteral x = new Litteral(i, idVariable);
+				Litteral nx = new Litteral(i+1, idVariable);
+				litterals.add(x);
+				litterals.add(nx);
+				clause.addLitteral(x);
+				occ[x.getId()] ++;
+				i += 2;
+			}
+			clauses.add(clause);
+			nbClauses ++;
+			idVariable ++;
+		}
+		
+		int size = clauses.size();
+		
+		for (i = 0 ; i < csp.getNbVariables() ; i++) {
+			for (int j = 0 ; j < csp.getNbVariables() ; j++) {
+				Variable x = csp.getVariables().get(i);
+				Variable y = csp.getVariables().get(j);
+				
+				int xMin = Integer.parseInt(x.getDomain().get(0));
+				int yMin = Integer.parseInt(y.getDomain().get(0));
+				
+				for (Constraint constraint : csp.getConstraints()) {
+					if ((constraint.getVariable1().equals(x) && constraint.getVariable2().equals(y))) {
+						
+						for (String vx : x.getDomain().getValues()) {
+							Clause clause = new Clause(nbClauses);
+							
+							int xIndex = Integer.parseInt(vx) - xMin;
+							Litteral lx = litterals.get((t.get(i)+xIndex)*2);  
+							Litteral nlx = litterals.get(lx.getId() + 1);
+							
+							clause.addLitteral(nlx);
+							occ[nlx.getId()] ++;
+							
+							for (String vy : y.getDomain().getValues()) {
+								int yIndex = Integer.parseInt(vy) - yMin;
+								Litteral ly = litterals.get((t.get(j)+yIndex)*2);
+								
+								for (Couple couple : constraint.getRelation().getCouples()) {
+									if (couple.getValue1().equals(vx) && couple.getValue2().equals(vy)) {
+										clause.addLitteral(ly);
+										occ[ly.getId()] ++;
+									}
+								}
+							}
+							clauses.add(clause);
+							nbClauses ++;
+						}
+					}
+					
+					if (constraint.getVariable1().equals(y) && constraint.getVariable2().equals(x)) {
+						
+						for (String vx : x.getDomain().getValues()) {
+							Clause clause = new Clause(nbClauses);
+							
+							int xIndex = Integer.parseInt(vx) - xMin;
+							Litteral lx = litterals.get((t.get(i)+xIndex)*2);  
+							Litteral nlx = litterals.get(lx.getId() + 1);
+							
+							clause.addLitteral(nlx);
+							occ[nlx.getId()] ++;
+							
+							for (String vy : y.getDomain().getValues()) {
+								int yIndex = Integer.parseInt(vy) - yMin;
+								Litteral ly = litterals.get((t.get(j)+yIndex)*2);
+								
+								for (Couple couple : constraint.getRelation().getCouples()) {
+									if (couple.getValue2().equals(vx) && couple.getValue1().equals(vy)) {
+										clause.addLitteral(ly);
+										occ[ly.getId()] ++;
+									}
+								}
+							}
+							clauses.add(clause);
+							nbClauses ++;
+						}
+					}
+					
+				}
+			}
+		}
+		
+		int maxOcc = 0;
+		for (i = 0 ; i < occ.length ; i++) {
+			if (occ[i] > maxOcc) maxOcc = occ[i];
+		}
+		
+		return new SAT(litterals.size()/2, clauses.size(), clauses, litterals, maxOcc);	
+	}
+	
+	public static void main(String [] args) {
+		BinCSP csp = Generator.generateRandomCSPSupport(3,3);
+		System.out.println(csp.toString());
+		SAT sat = BinCSPConverter.supportEncoding(csp);
+		System.out.println("#########");
+		System.out.println(sat.toString());
 	}
 }

@@ -1,34 +1,34 @@
 <instance  format="XCSP3" type="CSP">
 	<variables>
-		<var id="X0"> 0 1 2 </var>
-		<var id="X1"> 0 1 2 </var>
-		<var id="X2"> 0 1 2 </var>
-		<var id="X3"> 0 1 2 </var>
+		<var id="X0"> 0 1 2 3 </var>
+		<var id="X1"> 4 5 6 7 </var>
+		<var id="X2"> 8 9 10 11 </var>
+		<var id="X3"> 12 13 14 15 </var>
 	</variables>
 	<constraints>
 		<extension>
 			<list>X0 X1</list>
-			<conflicts>(0,0)(1,1)(2,2)</conflicts>
+			<supports>(3,5)(2,7)(3,7)</supports>
 		</extension>
 		<extension>
 			<list>X0 X2</list>
-			<conflicts>(0,0)(1,1)(2,2)</conflicts>
+			<supports>(2,11)(1,9)</supports>
 		</extension>
 		<extension>
 			<list>X0 X3</list>
-			<conflicts>(0,0)(1,1)(2,2)</conflicts>
+			<supports>(3,15)</supports>
 		</extension>
 		<extension>
 			<list>X1 X2</list>
-			<conflicts>(0,0)(1,1)(2,2)</conflicts>
+			<supports>(5,11)(7,11)</supports>
 		</extension>
 		<extension>
 			<list>X1 X3</list>
-			<conflicts>(0,0)(1,1)(2,2)</conflicts>
+			<supports>(7,14)(6,15)</supports>
 		</extension>
 		<extension>
 			<list>X2 X3</list>
-			<conflicts>(0,0)(1,1)(2,2)</conflicts>
+			<supports>(10,13)(10,13)</supports>
 		</extension>
 	</constraints>
 </instance>
