@@ -13,7 +13,7 @@ public class Utils {
 	
 	public static void swap(int [] t, int i, int j) {
 		int k = t[i];
-		t[i] = j;
+		t[i] = t[j];
 		t[j] = k;
 	}
 	

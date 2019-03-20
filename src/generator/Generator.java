@@ -17,6 +17,103 @@ import sat.SAT;
 
 public class Generator {
 
+	public static BinCSP generateCompleteGraphColorationSupport(int nbVertexs, int nbColors) {
+		
+		ArrayList<Variable> variables = new ArrayList<Variable>();
+		ArrayList<Domain> domains = new ArrayList<Domain>();
+		ArrayList<Constraint> constraints = new ArrayList<Constraint>();
+		ArrayList<Relation> relations = new ArrayList<Relation>();
+		
+		int value = 0;
+		for (int i = 0 ; i < nbVertexs ; i++) {
+			ArrayList<String> values = new ArrayList<String>();
+			for (int j = 0 ; j < nbColors ; j++) {
+				values.add(Integer.toString(value));
+				value++;
+			}
+			domains.add(new Domain("D" + i, values));
+		}
+		
+		for (int i = 0 ; i < nbVertexs ; i++) {
+			variables.add(new Variable("X" + i, domains.get(i), i));
+		}
+		
+		for (int i = 0 ; i < nbVertexs ; i++) {
+			for (int j = i+1 ; j < nbVertexs ; j++) {
+				Variable x = variables.get(i);
+				Variable y = variables.get(j);
+				ArrayList<Couple> couples = new ArrayList<Couple>();
+				
+				for(int k = 0 ; k < nbColors ; k++) {
+					for (int l = 0 ; l < nbColors ; l++) {
+						if (k != l) {
+							String vx = x.getDomain().get(k);
+							String vy = y.getDomain().get(l);
+							couples.add(new Couple(vx, vy));
+						}
+					}
+				}
+				
+				Relation relation = new Relation(TypeRelation.R_SUPPORTS, couples);
+				Constraint constraint = new Constraint(x, y, relation);
+				
+				relations.add(relation);
+				constraints.add(constraint);
+			}
+		}
+		
+		return new BinCSP(variables.size(), domains.size(), constraints.size(), relations.size(),
+		          variables, domains, constraints, relations);
+	}
+	
+	public static BinCSP generateExampleBug() {
+		
+		ArrayList<Variable> variables = new ArrayList<Variable>();
+		ArrayList<Domain> domains = new ArrayList<Domain>();
+		ArrayList<Constraint> constraints = new ArrayList<Constraint>();
+		ArrayList<Relation> relations = new ArrayList<Relation>();
+		
+		int index = 0;
+		for (int i = 0 ; i < 3 ; i ++) {
+			ArrayList<String> values = new ArrayList<String>();
+			for (int j = 0 ; j < 3 ; j++) {
+				values.add(Integer.toString(index));
+				index ++;
+			}
+			domains.add(new Domain("D" + i, values));
+		}
+		
+		for (int i = 0 ; i < 3 ; i++) {
+			variables.add(new Variable("X" + i, domains.get(i), i));
+		}
+		
+		Variable x = variables.get(0);
+		Variable y = variables.get(1);
+		Variable z = variables.get(2);
+		
+		ArrayList<Couple> crxy = new ArrayList<Couple>();
+		crxy.add(new Couple("1", "4"));
+		crxy.add(new Couple("2", "4"));
+		
+		ArrayList<Couple> crxz = new ArrayList<Couple>();
+		crxz.add(new Couple("1", "8"));
+		
+		ArrayList<Couple> cryz = new ArrayList<Couple>();
+		cryz.add(new Couple("4", "7"));
+		cryz.add(new Couple("4", "8"));
+		
+		relations.add(new Relation(TypeRelation.R_SUPPORTS, crxy));
+		relations.add(new Relation(TypeRelation.R_SUPPORTS, crxz));
+		relations.add(new Relation(TypeRelation.R_SUPPORTS, cryz));
+		
+		constraints.add(new Constraint(x, y, relations.get(0)));
+		constraints.add(new Constraint(x, z, relations.get(1)));
+		constraints.add(new Constraint(y, z, relations.get(2)));
+		
+		return new BinCSP(variables.size(), domains.size(), constraints.size(), relations.size(),
+		          variables, domains, constraints, relations);
+	}
+	
 	public static BinCSP generateRandomCSPSupport(int nbVariables, int domainSize) {
 		
 		ArrayList<Variable> variables = new ArrayList<Variable>();
@@ -518,7 +615,7 @@ public class Generator {
 	}
 	
 	public static void main(String [] args) {
-		BinCSP csp = generateRandomCSPSupport(3,3);
+		BinCSP csp = generateCompleteGraphColorationSupport(3, 3);
 		SAT sat = BinCSPConverter.supportEncoding(csp);
 		System.out.println(csp.toString());
 		System.out.println("#########");

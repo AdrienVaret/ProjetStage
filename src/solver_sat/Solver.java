@@ -225,9 +225,9 @@ public class Solver {
 			iep[idCC] ++;
 		}
 		clearX();
+
 		
 		while (!r) {
-			
 			if (idCC == 0) return -1;
 			else {
 				int max = iep[idCC];
@@ -235,8 +235,13 @@ public class Solver {
 					Litteral toRestore = ep[idCC][i];
 					restore (sat, toRestore);
 				}
+				
 				iep[idCC] = 0;
 				idCC --;
+				/**/
+				int nb = CC.get(idCC);
+				idC -= nb;
+				/**/
 			}
 			
 			n = cp.get(cp.size()-1);
@@ -279,6 +284,8 @@ public class Solver {
 	}
 	
 	public static void deductMultipleSolution(SAT sat, BinCSP csp, ArrayList<Integer> CC) {
+		
+		int [] initialStates = sat.getLitteralsStates().clone();
 		
 		ep = new Litteral [csp.getNbVariables()][sat.getNbVariables()*2]; 
 		iep = new int [csp.getNbVariables()];
@@ -330,7 +337,7 @@ public class Solver {
 				c[ic] = l;
 				ic ++;
 				L[0] = l;
-				propagation(sat, L, 0, 1, false);
+				boolean r = propagation(sat, L, 0, 1, false);
 				
 				for (int i = 0 ; i < L.length ; i++)
 					L[i] = null;
@@ -343,7 +350,7 @@ public class Solver {
 				cp.add(iX);
 				clearX();
 				
-				if (allAffected(sat)) {
+				if (r == true && /*allAffected(sat)*/ cp.size() == CC.size()) {
 					int index = 0;
 					int indexL = 0;
 					for (int i = 0 ; i < sat.getNbVariables() ; i++) {
@@ -366,7 +373,12 @@ public class Solver {
 					} else {
 						break;
 					}
-				} else {
+				} else if (r == false) {
+					if (backtrackMultipleSolution(sat, csp) == -1) {
+						break;
+					}
+				}
+				else {
 					idC += n;
 					idCC ++;
 				}
@@ -381,6 +393,11 @@ public class Solver {
 			//idCC ++;
 		}
 		
+		for (int i = 0 ; i < initialStates.length ; i++) {
+			sat.getLitteralsStates()[i] = initialStates[i];
+		}
+		
+		System.out.println("");
 	}
 	
 	/**
@@ -610,6 +627,10 @@ public class Solver {
 	 */
 	public static boolean propagation(SAT sat, Litteral [] L, int action, int set, boolean updateGraph) {
 		
+		/**/
+		updateGraph = false;
+		/**/
+		
 		long begin = System.currentTimeMillis();
 		int [] propagateds = new int [sat.getNbVariables() * 2];
 		int [] statesClauses = new int [sat.getNbClauses()];
@@ -628,14 +649,20 @@ public class Solver {
 			
 			if (set == 1) {
 				P1[l.getId()] = 1;
-				X[iX] = l;
-				iX ++;
+				/**/
+				if (sat.getLitteralsStates()[getIndex(l.getId())] == 0) {
+					X[iX] = l;
+					iX ++;
+				}
 				if (updateGraph)
 					G1.get(l.getId()).add(new Cause(couple, decisionLevel));
 			} else if (set == 2) {
 				P2[l.getId()] = 1;
-				Y[iY] = l;
-				iY ++;
+				/**/
+				if (sat.getLitteralsStates()[getIndex(l.getId())] == 0) {
+					Y[iY] = l;
+					iY ++;
+				}
 				if (updateGraph)
 					G2.get(l.getId()).add(new Cause(couple, decisionLevel));
 			}
@@ -655,7 +682,7 @@ public class Solver {
 				Litteral affectable = coupleAff.getValue2();
 				
 				if (affectable == null) {
-					if (x.equals(nl)) {
+					if (/**/x != null && /**/x.equals(nl)) {
 						/**/
 						if (y == null) {
 							result.setState(false);
@@ -677,8 +704,8 @@ public class Solver {
 								
 									ArrayList<Cause> causes = new ArrayList<Cause>();
 									clearArray(occurences);
-									causes.addAll(getCauses(l1, G, occurences));
-									causes.addAll(getCauses(l2, G, occurences));
+									//causes.addAll(getCauses(l1, G, occurences));
+									//causes.addAll(getCauses(l2, G, occurences));
 								
 									G.get(conflict.getId()).addAll(causes);
 								}
@@ -735,7 +762,7 @@ public class Solver {
 								
 							}
 						}
-					} else if (y.equals(nl)) {
+					} else if (/**/y != null && /**/ y.equals(nl)) {
 						if (isAffected(sat, x)) {
 							if (isSat(sat, x))
 								statesClauses[c.getId()] = 1;
@@ -757,7 +784,7 @@ public class Solver {
 								
 								return false;
 							}
-						} else {
+						} else { 
 							if (propagateds[x.getId()] == 0) {
 								propagateds[x.getId()] = 1;
 								
@@ -806,7 +833,7 @@ public class Solver {
 							}
 						}
 					}
-				} else {
+				} else { //if affectable != null, bouger les pointeurs
 					if (x.equals(nl)) {
 						int xid = x.getId();
 						int index = 1;
@@ -1204,9 +1231,14 @@ public class Solver {
 	}
 	
 	public static boolean modelExists(BinCSP csp, SAT sat) {
-		for (int i = 0 ; i < sat.getNbVariables() ; i++) {
+		//ATTENTION MODIFICATION
+		/*for (int i = 0 ; i < sat.getNbVariables() ; i++) {
 			if (sat.getLitteralState(i) == 0 && sat.getChoice(i) == 0)
 				return false;
+		}
+		return true;*/
+		for (int i = 0 ; i < variablesStates.length ; i++) {
+			if (variablesStates[i] == 0) return false;
 		}
 		return true;
 	}
@@ -1275,7 +1307,7 @@ public class Solver {
 	public static void displayAllSolutions(SAT sat, BinCSP csp, int [] shift) {
 		int nbSolutions = 1;
 		for (Litteral [] L : solutions) {
-			//System.out.println("# Solution " + nbSolutions + " : ");
+			System.out.println("# Solution " + nbSolutions + " : ");
 			for (Litteral l : L) {
 				int id = 0, begin = 0, indexVariable = 0;
 				for (int i = 0 ; i < shift.length ; i++) {
@@ -1293,9 +1325,9 @@ public class Solver {
 				int indexValue = id - begin;
 				String name = csp.getVariables().get(indexVariable).getName();
 				String value = csp.getVariables().get(indexVariable).getDomain().get(indexValue);
-				//System.out.println("# " + name + " = " + value);
+				System.out.println("# " + name + " = " + value);
 			}
-			//System.out.println("##");
+			System.out.println("##");
 			nbSolutions ++;
 		}
 	}
@@ -1741,6 +1773,7 @@ public class Solver {
 					}
 				}
 			} else if (x == null && y == null) {
+				
 				if (!backtrack(sat, CP, CC, shift)) {
 					if (solutions.size() == 0)
 						System.out.println("# UNSATISFIABLE");
@@ -1795,8 +1828,11 @@ public class Solver {
 		flagSymetries = false;
 		//BinCSP csp = Generator.generateUncompleteGraphColoration(20, 3, 0.3);
 		//BinCSP csp = Generator.generateCompleteGraphColoration(50,5);
-		//BinCSP csp = Generator.generatePigeons(4, 3);
-		BinCSP csp = Generator.generateRandomCSPSupport(4, 4);
+		//BinCSP csp = Generator.generatePigeons(3, 3);
+		//BinCSP csp = Generator.generateRandomCSPSupport(3, 3);
+		//BinCSP csp = Generator.generateExampleBug();
+		BinCSP csp = Generator.generateCompleteGraphColorationSupport(3, 3);
+		System.out.println(csp.toString());
 		solve(csp); 
 		BinCSP.exportToXCSP3(csp, "output.xml"); 
 		long end = System.currentTimeMillis();

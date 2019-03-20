@@ -481,6 +481,22 @@ public class BinCSPConverter {
 		}
 		
 		int size = clauses.size();
+		for (i = 0 ; i < size ; i++) {
+			Clause clause = clauses.get(i);
+			for (int j = 0 ; j < clause.getLitterals().size() ; j++) {
+				Litteral l1 = clause.get(j);
+				for (int k = j+1 ; k < clause.getLitterals().size() ; k++) {
+					Litteral l2 = clause.get(k);
+					Clause c = new Clause(nbClauses);
+					c.addLitteral(litterals.get(l1.getId()+1));
+					c.addLitteral(litterals.get(l2.getId()+1));
+					occ [litterals.get(l1.getId()+1).getId()] ++;
+					occ [litterals.get(l2.getId()+1).getId()] ++;
+					clauses.add(c);
+					nbClauses ++;
+				}
+			}
+		}
 		
 		for (i = 0 ; i < csp.getNbVariables() ; i++) {
 			for (int j = 0 ; j < csp.getNbVariables() ; j++) {
