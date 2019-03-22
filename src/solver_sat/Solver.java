@@ -6,9 +6,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 import bincsp.BinCSP;
 import bincsp.Variable;
 import conversion.BinCSPConverter;
@@ -38,6 +35,7 @@ public class Solver {
 	static boolean flagWriteTree = false;
 	static boolean flagSymetries = false;
 	static boolean flagNoMoreSymmetries = false;
+	static boolean flagSupport = false;
 	
 	/*
 	 * Time declarations
@@ -210,7 +208,7 @@ public class Solver {
 			p[ip-1] = null;
 			ip --;
 		}
-		 
+		
 		Litteral l = negation(sat, c[ic-1]);
 		Litteral [] L = new Litteral [sat.getNbVariables() * 2]; 
 		L[0] = l;
@@ -238,10 +236,8 @@ public class Solver {
 				
 				iep[idCC] = 0;
 				idCC --;
-				/**/
 				int nb = CC.get(idCC);
 				idC -= nb;
-				/**/
 			}
 			
 			n = cp.get(cp.size()-1);
@@ -302,7 +298,7 @@ public class Solver {
 		
 		Litteral [] L = new Litteral [sat.getNbVariables() * 2];
 		Litteral [] solution = new Litteral[csp.getNbVariables()];
-		int idS = 0;
+		
 		
 		while (true) {
 			
@@ -329,7 +325,6 @@ public class Solver {
 					l = l2;
 				} else {
 					l = null;
-					//BT
 				}
 			}
 			
@@ -350,7 +345,7 @@ public class Solver {
 				cp.add(iX);
 				clearX();
 				
-				if (r == true && /*allAffected(sat)*/ cp.size() == CC.size()) {
+				if (r == true && cp.size() == CC.size()) { //allAffected(sat) avant 
 					int index = 0;
 					int indexL = 0;
 					for (int i = 0 ; i < sat.getNbVariables() ; i++) {
@@ -365,7 +360,7 @@ public class Solver {
 					for (int i = 0 ; i < solution.length ; i++ ) {
 						solutions.get(solutions.size() - 1)[i] = solution[i];
 					}
-					//cp.add(0);
+					
 					if (flagAllSolutions) {
 						if (backtrackMultipleSolution(sat, csp) == -1) {
 							break;
@@ -389,15 +384,11 @@ public class Solver {
 					break;
 				}
 			}
-			
-			//idCC ++;
 		}
 		
 		for (int i = 0 ; i < initialStates.length ; i++) {
 			sat.getLitteralsStates()[i] = initialStates[i];
 		}
-		
-		System.out.println("");
 	}
 	
 	/**
@@ -465,9 +456,6 @@ public class Solver {
 	 * @return boolean
 	 */
 	public static boolean isAffected(SAT sat, Litteral l) {
-		/**/
-		//if (l == null) return false;
-		/**/
 		return sat.getLitteralState(getIndex(l.getId())) != 0;
 	}
 	
@@ -529,8 +517,7 @@ public class Solver {
 				return new GenericCouple<Litteral> (null, null);
 			}
 		}
-		
-		//ATTENTION
+
 		long end = System.currentTimeMillis();
 		selectCoupleTime += (end - begin);
 		return new GenericCouple<Litteral> (null, null);
@@ -627,6 +614,10 @@ public class Solver {
 	 */
 	public static boolean propagation(SAT sat, Litteral [] L, int action, int set, boolean updateGraph) {
 		
+		if (L[0].toString().equals("-5")) {
+			System.out.println("");
+		}
+		
 		/**/
 		updateGraph = false;
 		/**/
@@ -658,7 +649,7 @@ public class Solver {
 					G1.get(l.getId()).add(new Cause(couple, decisionLevel));
 			} else if (set == 2) {
 				P2[l.getId()] = 1;
-				/**/
+				
 				if (sat.getLitteralsStates()[getIndex(l.getId())] == 0) {
 					Y[iY] = l;
 					iY ++;
@@ -682,14 +673,14 @@ public class Solver {
 				Litteral affectable = coupleAff.getValue2();
 				
 				if (affectable == null) {
-					if (/**/x != null && /**/x.equals(nl)) {
-						/**/
+					if (x != null && x.equals(nl)) { //ajout de x != null
+						
 						if (y == null) {
 							result.setState(false);
 							//ICI : ajouter le littéral conflit
 							return false;
 						}
-						/**/
+						
 						if (isAffected(sat, y)) {
 							if (isSat(sat, y))
 								statesClauses[c.getId()] = 1;
@@ -699,7 +690,10 @@ public class Solver {
 								indexLitteral ++;
 								
 								if (updateGraph) {
+									
+									@SuppressWarnings("unused")
 									Litteral l1 = L[indexLitteral];
+									@SuppressWarnings("unused")
 									Litteral l2 = L[indexLitteral-1];
 								
 									ArrayList<Cause> causes = new ArrayList<Cause>();
@@ -1076,11 +1070,8 @@ public class Solver {
 	}
 
 	public static int findIndex(int [] shift, int id) {
-		int idLitteral;
-		//TODO: ATTENTION
-		//if (id % 2 == 0) idLitteral = id / 2;
-		//else idLitteral = (id - 1) / 2;
 		
+		int idLitteral;
 		idLitteral = id >> 1;
 		
 		for (int i = 0 ; i < shift.length ; i++) {
@@ -1459,6 +1450,34 @@ public class Solver {
 		return causes;
 	}
 	
+	public static void initializeSymmetriesVariables(BinCSP csp, SAT sat) {
+		V = csp.getNbVariables();
+		state = new int[csp.getVariables().get(0).getDomain().size()];
+		
+		for (int j = 0 ; j < state.length ; j++) {
+			state[j] = V;
+		}
+		
+		SP = new Litteral[sat.getNbVariables()*2];
+		countSP = new ArrayList<Integer>();
+	}
+	
+	public static void initializeLearningVariables(SAT sat) {
+		reason = new ArrayList<ArrayList<Cause>>();
+		G1 = new ArrayList<ArrayList<Cause>>();
+		G2 = new ArrayList<ArrayList<Cause>>();
+		
+		for (int j = 0 ; j <= sat.getNbVariables() * 2 ; j++) {
+			reason.add(new ArrayList<Cause>());
+			G1.add(new ArrayList<Cause>());
+			G2.add(new ArrayList<Cause>());
+		}
+		
+		decisionLevel = 1;
+		P1 = new int[sat.getNbVariables() * 2];
+		P2 = new int[sat.getNbVariables() * 2];	
+	}
+	
 	/**
 	 * Solve the csp
 	 * @param csp
@@ -1467,9 +1486,13 @@ public class Solver {
 
 		long begin = System.currentTimeMillis();
 		
-		//SAT sat = BinCSPConverter.directEncoding(csp);
-		SAT sat = BinCSPConverter.supportEncoding(csp);
+		SAT sat;
 		
+		if (flagSupport)
+			sat = BinCSPConverter.supportEncoding(csp);
+		else 
+			sat = BinCSPConverter.directEncoding(csp);
+			
 		initialize(sat, csp);
 		initializeOcc(sat);
 		
@@ -1492,38 +1515,9 @@ public class Solver {
 			i ++;
 		}
 
-		/*
-		 * Initialise variables for symmetries
-		 */
-		V = csp.getNbVariables();
-		state = new int[csp.getVariables().get(0).getDomain().size()];
-		
-		for (int j = 0 ; j < state.length ; j++) {
-			state[j] = V;
-		}
-		
-		SP = new Litteral[sat.getNbVariables()*2];
-		countSP = new ArrayList<Integer>();
-		
+		initializeSymmetriesVariables(csp, sat);
 		int resultSymmetries = 0;
-		
-		
-		/*
-		 * Initialize variables for learning
-		 */
-		reason = new ArrayList<ArrayList<Cause>>();
-		G1 = new ArrayList<ArrayList<Cause>>();
-		G2 = new ArrayList<ArrayList<Cause>>();
-		
-		for (int j = 0 ; j <= sat.getNbVariables() * 2 ; j++) {
-			reason.add(new ArrayList<Cause>());
-			G1.add(new ArrayList<Cause>());
-			G2.add(new ArrayList<Cause>());
-		}
-		
-		decisionLevel = 1;
-		P1 = new int[sat.getNbVariables() * 2];
-		P2 = new int[sat.getNbVariables() * 2];
+		initializeLearningVariables(sat);
 		
 		
 		while (true) {		
@@ -1826,15 +1820,34 @@ public class Solver {
 		
 		long begin = System.currentTimeMillis();
 		flagSymetries = false;
-		//BinCSP csp = Generator.generateUncompleteGraphColoration(20, 3, 0.3);
-		//BinCSP csp = Generator.generateCompleteGraphColoration(50,5);
-		//BinCSP csp = Generator.generatePigeons(3, 3);
-		//BinCSP csp = Generator.generateRandomCSPSupport(3, 3);
-		//BinCSP csp = Generator.generateExampleBug();
-		BinCSP csp = Generator.generateCompleteGraphColorationSupport(3, 3);
-		System.out.println(csp.toString());
-		solve(csp); 
-		BinCSP.exportToXCSP3(csp, "output.xml"); 
+		flagSupport = false;
+		
+		GenericCouple<BinCSP> couple = Generator.generateExampleConflictSupport();
+		
+		//solve(couple.getV1());
+		System.out.println("#########");
+		
+		flagSupport = true;
+		ic = 0;
+		iA = 0;
+		nbNodes = 0;
+		clearX();
+		clearY();
+		
+		for (int i = 0 ; i < iC ; i++) {
+			c[iC] = null;
+		}
+		
+		solutions.clear();
+		
+		iC = 0;
+		CC.clear();
+		CP.clear();
+		
+		resetTimer();
+		
+		solve(couple.getV2());
+		
 		long end = System.currentTimeMillis();
 		finalTime = end - begin;
 		displayTime();

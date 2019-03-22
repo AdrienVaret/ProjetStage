@@ -13,10 +13,257 @@ import bincsp.Relation.TypeRelation;
 import bincsp.Variable;
 import conversion.BinCSPConverter;
 import sat.SAT;
+import utils.GenericCouple;
 
 
 public class Generator {
 
+	public static GenericCouple<BinCSP> generateExampleConflictSupport() {
+		
+		ArrayList<Variable> variables = new ArrayList<Variable>();
+		ArrayList<Domain> domains = new ArrayList<Domain>();
+		ArrayList<Constraint> constraints = new ArrayList<Constraint>();
+		ArrayList<Relation> relations = new ArrayList<Relation>();
+		
+		int value = 0;
+		for (int i = 0 ; i < 3 ; i++) {
+			ArrayList<String> values = new ArrayList<String>();
+			for (int j = 0 ; j < 3 ; j++) {
+				values.add(Integer.toString(value));
+				value ++;
+			}
+			domains.add(new Domain("D" + i, values));
+			variables.add(new Variable("X"+i, domains.get(i), i));
+		}
+		
+		ArrayList<Couple> couples = new ArrayList<Couple>();
+		couples.add(new Couple(variables.get(0).getDomain().get(0),
+				               variables.get(1).getDomain().get(0)));
+		couples.add(new Couple(variables.get(0).getDomain().get(2),
+	               			   variables.get(1).getDomain().get(0)));
+		couples.add(new Couple(variables.get(0).getDomain().get(1),
+    			               variables.get(1).getDomain().get(1)));
+		
+		Relation relation = new Relation(TypeRelation.R_CONFLICTS, couples);
+		Constraint constraint = new Constraint(variables.get(0), variables.get(1), relation);
+		
+		constraints.add(constraint);
+		relations.add(relation);
+		
+		int [][] M = new int [3][3];
+		M[0][1] = 1;
+		M[1][0] = 1;
+				
+		BinCSP cspConflict = new BinCSP(variables.size(), domains.size(), constraints.size(), relations.size(),
+		          variables, domains, constraints, relations);
+		
+		BinCSP cspSupports = conflictToSupports(cspConflict, 3, M);
+		
+		return new GenericCouple<BinCSP>(cspConflict, cspSupports);
+	}
+	
+	public static BinCSP conflictToSupports(BinCSP cspConflict, int d, int [][] M) {
+		
+		ArrayList<Constraint> constraints = new ArrayList<Constraint>();
+		ArrayList<Relation> relations = new ArrayList<Relation>();
+		
+		for (Constraint constraint : cspConflict.getConstraints()) {
+			ArrayList<Couple> couples = new ArrayList<Couple>();
+			Variable x = constraint.getVariable1();
+			Variable y = constraint.getVariable2();
+			
+			for (int i = 0 ; i < d ; i ++) {
+				for (int j = 0 ; j < d ; j++) {
+					Couple couple = new Couple(x.getDomain().get(i), y.getDomain().get(j));
+					if (!couple.isContained(constraint.getRelation().getCouples())) {
+						couples.add(couple);
+					}
+				}
+			}
+			
+			Relation relation = new Relation(TypeRelation.R_SUPPORTS, couples);
+			Constraint newConstraint = new Constraint(x, y, relation);
+			relations.add(relation);
+			constraints.add(newConstraint);
+		}
+		
+		for (int i = 0 ; i < M.length ; i++) {
+			for (int j = i + 1 ; j < M.length ; j++) {
+				if (M[i][j] == 0) {
+					Variable x = cspConflict.getVariables().get(i);
+					Variable y = cspConflict.getVariables().get(j);
+					
+					ArrayList<Couple> couples = new ArrayList<Couple>();
+					for (int k = 0 ; k < d ; k++) {
+						for (int l = 0 ; l < d ; l++) {
+							String vx = x.getDomain().get(k);
+							String vy = y.getDomain().get(l);
+							couples.add(new Couple(vx, vy));
+						}
+					}
+					
+					Relation relation = new Relation(TypeRelation.R_SUPPORTS, couples);
+					Constraint constraint = new Constraint(x, y, relation);
+					relations.add(relation);
+					constraints.add(constraint);
+				}
+			}
+		}
+		
+		return new BinCSP(cspConflict.getNbVariables(), cspConflict.getNbDomains(), constraints.size(), relations.size(),
+		          cspConflict.getVariables(), cspConflict.getDomains(), constraints, relations);
+	}
+	
+	public static GenericCouple<BinCSP> generateRandomProblem(int n, int d, double density, int tightness) {
+		
+		if (tightness > (d*d)) {
+			tightness = d*d;
+		}
+		
+		ArrayList<Variable> variables = new ArrayList<Variable>();
+		ArrayList<Domain> domains = new ArrayList<Domain>();
+		ArrayList<Constraint> constraints = new ArrayList<Constraint>();
+		ArrayList<Relation> relations = new ArrayList<Relation>();
+		
+		int value = 0;
+		for (int i = 0 ; i < n ; i++) {
+			ArrayList<String> values = new ArrayList<String>();
+			for (int j = 0 ; j < d ; j++) {
+				values.add(Integer.toString(value));
+				value ++;
+			}
+			domains.add(new Domain("D" + i, values));
+		}
+		
+		for (int i = 0 ; i < n ; i++) {
+			variables.add(new Variable("X" + i, domains.get(i), i));
+		}
+		
+		int nbMaxConstraints = (int) (n * (n-1)) / 2;
+		int nbConstraints = (int) (nbMaxConstraints * density);
+		
+		int [][] M = new int [n][n];
+		
+		int index = 0;
+		while (index < nbConstraints) {
+			int x = ThreadLocalRandom.current().nextInt(0, n);
+			int y = ThreadLocalRandom.current().nextInt(0, n);
+			
+			if ((x != y) && (M[x][y] == 0)) {
+				M[x][y] = 1;
+				M[y][x] = 1;
+				index ++;
+			}
+		}
+		
+		for (int i = 0 ; i < n ; i++) {
+			for (int j = i + 1 ; j < n ; j++) {
+				if (M[i][j] == 1) {
+					Variable x = variables.get(i);
+					Variable y = variables.get(j);
+					
+					int [][] C = new int [d][d];
+					index = 0;
+					ArrayList<Couple> couples = new ArrayList<Couple>();
+					while (index < tightness) {
+						int v1 = ThreadLocalRandom.current().nextInt(0, d);
+						int v2 = ThreadLocalRandom.current().nextInt(0, d);
+						
+						if (C[v1][v2] == 0) {
+							C[v1][v2] = 1;
+							index ++;
+							couples.add(new Couple(x.getDomain().get(v1),
+									               y.getDomain().get(v2)));
+						}
+					}
+					Relation relation = new Relation(TypeRelation.R_CONFLICTS, couples);
+					Constraint constraint = new Constraint(x, y, relation);
+					relations.add(relation);
+					constraints.add(constraint);
+				}
+			}
+		}
+		
+		BinCSP cspConflict = new BinCSP(variables.size(), domains.size(), constraints.size(), relations.size(),
+		          variables, domains, constraints, relations);
+		
+		BinCSP cspSupport = conflictToSupports(cspConflict, d, M);
+		
+		System.out.println(cspConflict.toString());
+		System.out.println("#######");
+		System.out.println(cspSupport.toString());
+		
+		return new GenericCouple<BinCSP>(cspConflict, cspSupport);
+	}
+	
+	public static BinCSP generateUncompleteGraphColorationSupport(int nbVertexs, int nbColors, double tightness) {
+		
+		ArrayList<Variable> variables = new ArrayList<Variable>();
+		ArrayList<Domain> domains = new ArrayList<Domain>();
+		ArrayList<Constraint> constraints = new ArrayList<Constraint>();
+		ArrayList<Relation> relations = new ArrayList<Relation>();
+		
+		int value = 0;
+		for (int i = 0 ; i < nbVertexs ; i++) {
+			ArrayList<String> values = new ArrayList<String>();
+			for (int j = 0 ; j < nbColors ; j++) {
+				values.add(Integer.toString(value));
+				value++;
+			}
+			domains.add(new Domain("D" + i, values));
+		}
+		
+		for (int i = 0 ; i < nbVertexs ; i++) {
+			variables.add(new Variable("X" + i, domains.get(i), i));
+		}
+		
+		int nbMaxEdges = (nbVertexs * (nbVertexs - 1)) / 2;
+		int nbEdges = (int) (tightness * nbMaxEdges);
+		
+		int [][] M = new int [nbVertexs][nbVertexs];
+		
+		int i = 0;
+		while(i < nbEdges) {
+			int x = ThreadLocalRandom.current().nextInt(0, nbVertexs);
+			int y = ThreadLocalRandom.current().nextInt(0, nbVertexs);
+			
+			if ((x != y) && (M[x][y] == 0)) {
+				M[x][y] = 1;
+				M[y][x] = 1;
+				i ++;
+			}
+		}
+		
+		for (i = 0 ; i < nbVertexs ; i++) {
+			for (int j = i + 1 ; j < nbVertexs ; j++) {
+				if (M[i][j] == 1) {
+					Variable x = variables.get(i);
+					Variable y = variables.get(j);
+					
+					ArrayList<Couple> couples = new ArrayList<Couple>();
+					for (int k = 0 ; k < nbColors ; k++) {
+						for (int l = 0 ; l < nbColors ; l++) {
+							if (k != l) {
+								String vx = x.getDomain().get(k);
+								String vy = y.getDomain().get(l);
+								couples.add(new Couple(vx, vy));
+							}
+						}
+					}
+					
+					Relation relation = new Relation(TypeRelation.R_SUPPORTS, couples);
+					Constraint constraint = new Constraint(x, y, relation);
+					
+					relations.add(relation);
+					constraints.add(constraint);
+				}
+			}
+		}
+		
+		return new BinCSP(variables.size(), domains.size(), constraints.size(), relations.size(),
+		          variables, domains, constraints, relations);
+	}
+	
 	public static BinCSP generateCompleteGraphColorationSupport(int nbVertexs, int nbColors) {
 		
 		ArrayList<Variable> variables = new ArrayList<Variable>();
@@ -615,10 +862,6 @@ public class Generator {
 	}
 	
 	public static void main(String [] args) {
-		BinCSP csp = generateCompleteGraphColorationSupport(3, 3);
-		SAT sat = BinCSPConverter.supportEncoding(csp);
-		System.out.println(csp.toString());
-		System.out.println("#########");
-		System.out.println(sat.toString());
+		GenericCouple<BinCSP> couple = generateRandomProblem(4, 3, 0.5, 3);
 	}
 }

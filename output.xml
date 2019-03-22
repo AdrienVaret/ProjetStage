@@ -3,19 +3,21 @@
 		<var id="X0"> 0 1 2 </var>
 		<var id="X1"> 3 4 5 </var>
 		<var id="X2"> 6 7 8 </var>
+		<var id="X3"> 9 10 11 </var>
+		<var id="X4"> 12 13 14 </var>
 	</variables>
 	<constraints>
-		<extension>
-			<list>X0 X1</list>
-			<supports>(0,4)(0,5)(1,3)(1,5)(2,3)(2,4)</supports>
-		</extension>
 		<extension>
 			<list>X0 X2</list>
 			<supports>(0,7)(0,8)(1,6)(1,8)(2,6)(2,7)</supports>
 		</extension>
 		<extension>
-			<list>X1 X2</list>
-			<supports>(3,7)(3,8)(4,6)(4,8)(5,6)(5,7)</supports>
+			<list>X0 X3</list>
+			<supports>(0,10)(0,11)(1,9)(1,11)(2,9)(2,10)</supports>
+		</extension>
+		<extension>
+			<list>X2 X3</list>
+			<supports>(6,10)(6,11)(7,9)(7,11)(8,9)(8,10)</supports>
 		</extension>
 	</constraints>
 </instance>
