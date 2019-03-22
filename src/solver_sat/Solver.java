@@ -614,7 +614,7 @@ public class Solver {
 	 */
 	public static boolean propagation(SAT sat, Litteral [] L, int action, int set, boolean updateGraph) {
 		
-		if (L[0].toString().equals("-5")) {
+		if (L[1] != null && L[0].toString().equals("-5") && L[1].toString().equals("-4")) {
 			System.out.println("");
 		}
 		

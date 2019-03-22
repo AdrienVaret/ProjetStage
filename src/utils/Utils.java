@@ -7,6 +7,14 @@ import sat.SAT;
 
 public class Utils {
 	
+	public static void shiftToEnd(int [] t, int i) {
+		int index = i;
+		while (index + 1 < t.length) {
+			swap(t, index, index+1);
+			index ++;
+		}
+	}
+	
 	public static Double integerToDouble(Integer i) {
 		return new Double(i);
 	}
@@ -44,5 +52,13 @@ public class Utils {
 			}
 		}
 		return L;
+	}
+	
+	public static void main(String [] args) {
+		int [] t = {1,-1,3,4,5};
+		shiftToEnd(t, 1);
+		for (int i : t) {
+			System.out.println(i);
+		}
 	}
 }
