@@ -664,7 +664,15 @@ public class Solver {
 		
 		while (l != null) {
 			nl = negation(sat, l);
+			ArrayList<Integer> toShift = new ArrayList<Integer>();
+			
 			for (int i = 1 ; i < occ[nl.getId()][0] + 1 ; i++) {
+				
+				if (occ[nl.getId()][i] == -1) {
+					Utils.shiftToEnd(occ[nl.getId()], i);
+					occ[nl.getId()][0] --;
+				}
+				
 				Clause c = sat.getClauses().get(occ[nl.getId()][i]);
 				Litteral x = sat.getCouplePtr(c.getId()).getV1();
 				Litteral y = sat.getCouplePtr(c.getId()).getV2();
@@ -835,6 +843,7 @@ public class Solver {
 							index ++;
 						}
 						
+						/*
 						int size = occ[xid][0];
 						
 						while (index < size + 1) {
@@ -847,9 +856,14 @@ public class Solver {
 						
 						occ[xid][0] --;
 						
+						*/
+						
+						occ[xid][index] = -1;
+						toShift.add(index);
+						
 						int lid = coupleAff.getValue2().getId();
 						
-						size = occ[lid][0];
+						int size = occ[lid][0];
 						occ[lid][size+1] = c.getId();
 						occ[lid][size+2] = -1;
 						occ[lid][0] ++;
@@ -864,6 +878,7 @@ public class Solver {
 							index ++;
 						}
 						
+						/*
 						int size = occ[yid][0];
 						
 						while (index < size + 1) {
@@ -874,11 +889,16 @@ public class Solver {
 							index ++;
 						}
 						
+						
 						occ[yid][0] --;
+						*/
+						
+						occ[yid][index] = -1;
+						toShift.add(index);
 						
 						int lid = coupleAff.getValue2().getId();
 						
-						size = occ[lid][0];
+						int size = occ[lid][0];
 						occ[lid][size+1] = c.getId();
 						occ[lid][size+2] = -1;
 						occ[lid][0] ++;
@@ -888,7 +908,7 @@ public class Solver {
 					}
 				}
 			}
-			
+			Utils.shiftAll(occ[nl.getId()], toShift);
 			affect(sat, l);
 			indexLitteral ++;
 			l = L[indexLitteral];
@@ -1263,7 +1283,10 @@ public class Solver {
 	public static void initializeOcc(SAT sat) {
 		
 		for (int i = 0 ; i < sat.getNbVariables() * 2 ; i++) {
-			occ[i][1] = -1;
+			//occ[i][1] = -1;
+			for (int j = 1 ; j < occ[i].length ; j++) {
+				occ[i][j] = -1;
+			}
 		}
 		
 		for (int i = 0 ; i < sat.getNbClauses() ; i++) {

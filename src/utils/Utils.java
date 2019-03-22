@@ -15,6 +15,13 @@ public class Utils {
 		}
 	}
 	
+	public static void shiftAll(int [] t, ArrayList<Integer> toShift) {
+		for (Integer i : toShift) {
+			t[0] --;
+			shiftToEnd(t, i);
+		}
+	}
+	
 	public static Double integerToDouble(Integer i) {
 		return new Double(i);
 	}
