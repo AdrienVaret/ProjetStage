@@ -10,6 +10,7 @@ import bincsp.BinCSP;
 import bincsp.Variable;
 import conversion.BinCSPConverter;
 import generator.Generator;
+import generator.GeneratorBis;
 import sat.Clause;
 import sat.Litteral;
 import sat.SAT;
@@ -686,6 +687,10 @@ public class Solver {
 						if (y == null) {
 							result.setState(false);
 							//ICI : ajouter le littéral conflit
+							
+							Utils.shiftAll(occ[nl.getId()], toShift);
+							toShift = 0;
+							
 							return false;
 						}
 						
@@ -694,6 +699,9 @@ public class Solver {
 								statesClauses[c.getId()] = 1;
 							else {
 								result.setState(false);
+								
+								Utils.shiftAll(occ[nl.getId()], toShift);
+								toShift = 0;
 								
 								indexLitteral ++;
 								
@@ -770,6 +778,9 @@ public class Solver {
 								statesClauses[c.getId()] = 1;
 							else {
 								result.setState(false);
+								
+								Utils.shiftAll(occ[nl.getId()], toShift);
+								toShift = 0;
 								
 								if (updateGraph) {
 									indexLitteral ++;
@@ -857,6 +868,9 @@ public class Solver {
 						Collections.swap(c.getLitterals(), 0, coupleAff.getValue1());
 						sat.setCouplePtr(c.getId(), c.get(0), c.get(1));
 						
+						//Utils.shiftAll(occ[nl.getId()], toShift);
+						//toShift = 0;
+						
 					} else if (y.equals(nl)){
 						int yid = y.getId();
 						int index = 1;
@@ -877,10 +891,18 @@ public class Solver {
 						
 						Collections.swap(c.getLitterals(), 1, coupleAff.getValue1());
 						sat.setCouplePtr(c.getId(), c.get(0), c.get(1));
+						
+						//Utils.shiftAll(occ[nl.getId()], toShift);
+						//toShift = 0;
 					}
+				//shift ici
+					
 				}
+				//Utils.shiftAll(occ[nl.getId()], toShift);
+				//toShift = 0;
 			}
 			Utils.shiftAll(occ[nl.getId()], toShift);
+			toShift = 0;
 			//occ[nl.getId()][0] -= toShift;
 			affect(sat, l);
 			indexLitteral ++;
@@ -1817,8 +1839,10 @@ public class Solver {
 		flagSymetries = false;
 		flagSupport = false;
 		
-		//GenericCouple<BinCSP> couple = Generator.generateExampleConflictSupport();
-		GenericCouple<BinCSP> couple = Generator.generateRandomProblem(10, 3, 0.2, 4);
+		//enericCouple<BinCSP> couple = Generator.generateExampleConflictSupport();
+		GenericCouple<BinCSP> couple = Generator.generateRandomProblem(10, 3, 0.2, 50);
+		
+		//GenericCouple<BinCSP> couple = GeneratorBis.generateExampleBug1();
 		
 		System.out.println(couple.getV1().toString());
 		
