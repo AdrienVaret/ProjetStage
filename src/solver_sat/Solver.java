@@ -1840,7 +1840,7 @@ public class Solver {
 		flagSupport = false;
 		
 		//enericCouple<BinCSP> couple = Generator.generateExampleConflictSupport();
-		GenericCouple<BinCSP> couple = Generator.generateRandomProblem(10, 3, 0.2, 50);
+		GenericCouple<BinCSP> couple = Generator.generateRandomProblem(10, 3, 0.9, 90);
 		
 		//GenericCouple<BinCSP> couple = GeneratorBis.generateExampleBug1();
 		
@@ -1861,8 +1861,10 @@ public class Solver {
 		clearX();
 		clearY();
 		
-		for (int i = 0 ; i < iC ; i++) {
-			c[iC] = null;
+		if (c != null) {
+			for (int i = 0 ; i < iC ; i++) {
+				c[iC] = null;
+			}
 		}
 		
 		solutions.clear();
