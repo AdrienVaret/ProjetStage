@@ -189,10 +189,6 @@ public class Generator {
 		
 		BinCSP cspSupport = conflictToSupports(cspConflict, d, M);
 		
-		System.out.println(cspConflict.toString());
-		System.out.println("#######");
-		System.out.println(cspSupport.toString());
-		
 		return new GenericCouple<BinCSP>(cspConflict, cspSupport);
 	}
 	

@@ -614,10 +614,6 @@ public class Solver {
 	 */
 	public static boolean propagation(SAT sat, Litteral [] L, int action, int set, boolean updateGraph) {
 		
-		if (L[1] != null && L[0].toString().equals("-5") && L[1].toString().equals("-4")) {
-			System.out.println("");
-		}
-		
 		/**/
 		updateGraph = false;
 		/**/
@@ -664,13 +660,17 @@ public class Solver {
 		
 		while (l != null) {
 			nl = negation(sat, l);
-			ArrayList<Integer> toShift = new ArrayList<Integer>();
-			
+			//ArrayList<Integer> toShift = new ArrayList<Integer>();
+			int toShift = 0;
 			for (int i = 1 ; i < occ[nl.getId()][0] + 1 ; i++) {
 				
-				if (occ[nl.getId()][i] == -1) {
-					Utils.shiftToEnd(occ[nl.getId()], i);
-					occ[nl.getId()][0] --;
+				//if (occ[nl.getId()][i] == -1) {
+				//	Utils.shiftToEnd(occ[nl.getId()], i);
+				//	occ[nl.getId()][0] --;
+				//}
+				
+				if (occ[nl.getId()][i] == -1 ) {
+					System.out.println("");
 				}
 				
 				Clause c = sat.getClauses().get(occ[nl.getId()][i]);
@@ -843,23 +843,9 @@ public class Solver {
 							index ++;
 						}
 						
-						/*
-						int size = occ[xid][0];
-						
-						while (index < size + 1) {
-							occ[xid][index] = -1;
-							if (index < size) {
-								Utils.swap(occ[xid], index, index+1);
-							}
-							index ++;
-						}
-						
-						occ[xid][0] --;
-						
-						*/
-						
 						occ[xid][index] = -1;
-						toShift.add(index);
+						//toShift.add(index);
+						toShift ++;
 						
 						int lid = coupleAff.getValue2().getId();
 						
@@ -877,24 +863,10 @@ public class Solver {
 						while (occ[yid][index] != c.getId()) {
 							index ++;
 						}
-						
-						/*
-						int size = occ[yid][0];
-						
-						while (index < size + 1) {
-							occ[yid][index] = -1;
-							if (index < size) {
-								Utils.swap(occ[yid], index, index+1);
-							}
-							index ++;
-						}
-						
-						
-						occ[yid][0] --;
-						*/
-						
+
 						occ[yid][index] = -1;
-						toShift.add(index);
+						//toShift.add(index);
+						toShift ++;
 						
 						int lid = coupleAff.getValue2().getId();
 						
@@ -909,6 +881,7 @@ public class Solver {
 				}
 			}
 			Utils.shiftAll(occ[nl.getId()], toShift);
+			//occ[nl.getId()][0] -= toShift;
 			affect(sat, l);
 			indexLitteral ++;
 			l = L[indexLitteral];
@@ -1283,7 +1256,6 @@ public class Solver {
 	public static void initializeOcc(SAT sat) {
 		
 		for (int i = 0 ; i < sat.getNbVariables() * 2 ; i++) {
-			//occ[i][1] = -1;
 			for (int j = 1 ; j < occ[i].length ; j++) {
 				occ[i][j] = -1;
 			}
@@ -1321,7 +1293,7 @@ public class Solver {
 	public static void displayAllSolutions(SAT sat, BinCSP csp, int [] shift) {
 		int nbSolutions = 1;
 		for (Litteral [] L : solutions) {
-			System.out.println("# Solution " + nbSolutions + " : ");
+			//System.out.println("# Solution " + nbSolutions + " : ");
 			for (Litteral l : L) {
 				int id = 0, begin = 0, indexVariable = 0;
 				for (int i = 0 ; i < shift.length ; i++) {
@@ -1339,9 +1311,9 @@ public class Solver {
 				int indexValue = id - begin;
 				String name = csp.getVariables().get(indexVariable).getName();
 				String value = csp.getVariables().get(indexVariable).getDomain().get(indexValue);
-				System.out.println("# " + name + " = " + value);
+				//System.out.println("# " + name + " = " + value);
 			}
-			System.out.println("##");
+			//System.out.println("##");
 			nbSolutions ++;
 		}
 	}
@@ -1845,9 +1817,17 @@ public class Solver {
 		flagSymetries = false;
 		flagSupport = false;
 		
-		GenericCouple<BinCSP> couple = Generator.generateExampleConflictSupport();
+		//GenericCouple<BinCSP> couple = Generator.generateExampleConflictSupport();
+		GenericCouple<BinCSP> couple = Generator.generateRandomProblem(10, 3, 0.2, 4);
 		
-		//solve(couple.getV1());
+		System.out.println(couple.getV1().toString());
+		
+		solve(couple.getV1());
+		
+		long end = System.currentTimeMillis();
+		finalTime = end - begin;
+		displayTime();
+		
 		System.out.println("#########");
 		
 		flagSupport = true;
@@ -1868,10 +1848,11 @@ public class Solver {
 		CP.clear();
 		
 		resetTimer();
+		begin = System.currentTimeMillis();
 		
 		solve(couple.getV2());
 		
-		long end = System.currentTimeMillis();
+		end = System.currentTimeMillis();
 		finalTime = end - begin;
 		displayTime();
 	}

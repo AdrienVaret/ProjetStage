@@ -1,6 +1,7 @@
 package utils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import sat.Litteral;
 import sat.SAT;
@@ -19,6 +20,18 @@ public class Utils {
 		for (Integer i : toShift) {
 			t[0] --;
 			shiftToEnd(t, i);
+		}
+	}
+	
+	public static void shiftAll(int [] t, int n) {
+		t [0] -= n;
+		for (int i = 0 ; i < n ; i++) {
+			for (int j = 1 ; j < t.length ; j++) {
+				if (t[j] == -1) {
+					shiftToEnd(t,j);
+					break;
+				}
+			}
 		}
 	}
 	
@@ -62,10 +75,14 @@ public class Utils {
 	}
 	
 	public static void main(String [] args) {
-		int [] t = {1,-1,3,4,5};
-		shiftToEnd(t, 1);
+		int [] t = {5, 2, 3, -1, 2, -1, -1, 2};
+		ArrayList<Integer> ts = new ArrayList<Integer>();
+		ts.add(3);
+		ts.add(5);
+		ts.add(6);
+		shiftAll(t, 3);
 		for (int i : t) {
-			System.out.println(i);
+			System.out.print(i + " ");
 		}
 	}
 }
