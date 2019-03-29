@@ -24,11 +24,13 @@ public class Utils {
 	}
 	
 	public static void shiftAll(int [] t, int n) {
-		t [0] -= n;
+		//t [0] -= n;
 		for (int i = 0 ; i < n ; i++) {
 			for (int j = 1 ; j < t.length ; j++) {
 				if (t[j] == -1) {
-					shiftToEnd(t,j);
+					//shiftToEnd(t,j);
+					swap(t, j, t[0]);
+					t[0] --;
 					break;
 				}
 			}

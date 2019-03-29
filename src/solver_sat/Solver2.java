@@ -1724,89 +1724,57 @@ public class Solver2 {
 				Litteral [] L1 = new Litteral[sat.getNbVariables() * 2];
 				L1[0] = x;
 				
-				/*boolean r = propagation(sat, L1, 0, 1, true); 
-				
-				//TODO: mettre à jour le graphe d'implication (ici un seul sous graphe donc simple ...)
-				decisionLevel ++;
-				
-				clearArray(L1);
-				
-				result.clear();
-				
-				if (!r) {
-					CP.add(0);
-					restoreAll(sat, X, shift);
+				action = Action.HEURISTIC;
 					
-					clearX();
-					clearY();
-					clearLP();
+				for (int index = 0 ; index < iX ; index ++) {
+					P[iP] = X[index];
+					iP ++;
+				}
+				CP.add(iX);
 					
-					if (!backtrack(sat, CP, CC, shift)) {
-						if (solutions.size() == 0)
-							System.out.println("# UNSATISFIABLE");
-						else {
-							System.out.println("# " + solutions.size() + " solutions found");
-							displayAllSolutions(sat, csp, shift);
+				variablesStates[idClause] = 1;
+				nbVariablesSat ++;
+					
+				for (Litteral l : X) {
+					if (l == null) break;
+					int index = findIndex(shift, l.getId());
+					if (l.getId() % 2 == 1) 
+						domainsSizes[index] --;
+				}
+					
+				sat.setNbLitteralsSat(sat.getNbLitteralsSat() + iX);
+					
+				clearX();
+				clearY();
+				clearLP();
+					
+				if (modelExists(csp,sat)) {
+					if (flagAllSolutions) {
+						deductMultipleSolution(sat, csp, CC);
+						if (!backtrack(sat, CP, CC, shift)) {
+							if (solutions.size() == 0)
+								System.out.println("# UNSATISFIABLE");
+							else {
+								System.out.println("# SATISFIABLE");
+								System.out.println("# " + solutions.size() + " solutions found");
+								displayAllSolutions(sat, csp, shift);
+							}
+							System.out.println("nb_nodes : " + nbNodes);
+							long end = System.currentTimeMillis();								solveTime = end - begin;
+								break;
 						}
+					} else {
+						//deductModel(sat);
+						//TODO MODIF
+						deductMultipleSolution(sat, csp, CC);
+						//displaySolution(csp, sat);
+						displayAllSolutions(sat, csp, shift);
 						System.out.println("nb_nodes : " + nbNodes);
 						long end = System.currentTimeMillis();
 						solveTime = end - begin;
 						break;
 					}
-				} else { */
-					action = Action.HEURISTIC;
-					
-					for (int index = 0 ; index < iX ; index ++) {
-						P[iP] = X[index];
-						iP ++;
-					}
-					CP.add(iX);
-					
-					variablesStates[idClause] = 1;
-					nbVariablesSat ++;
-					
-					for (Litteral l : X) {
-						if (l == null) break;
-						int index = findIndex(shift, l.getId());
-						if (l.getId() % 2 == 1) 
-							domainsSizes[index] --;
-					}
-					
-					sat.setNbLitteralsSat(sat.getNbLitteralsSat() + iX);
-					
-					clearX();
-					clearY();
-					clearLP();
-					
-					if (modelExists(csp,sat)) {
-						if (flagAllSolutions) {
-							deductMultipleSolution(sat, csp, CC);
-							if (!backtrack(sat, CP, CC, shift)) {
-								if (solutions.size() == 0)
-									System.out.println("# UNSATISFIABLE");
-								else {
-									System.out.println("# SATISFIABLE");
-									System.out.println("# " + solutions.size() + " solutions found");
-									displayAllSolutions(sat, csp, shift);
-								}
-								System.out.println("nb_nodes : " + nbNodes);
-								long end = System.currentTimeMillis();
-								solveTime = end - begin;
-								break;
-							}
-						} else {
-							//deductModel(sat);
-							//TODO MODIF
-							deductMultipleSolution(sat, csp, CC);
-							//displaySolution(csp, sat);
-							displayAllSolutions(sat, csp, shift);
-							System.out.println("nb_nodes : " + nbNodes);
-							long end = System.currentTimeMillis();
-							solveTime = end - begin;
-							break;
-						}
-					}
-				//}
+				}
 			} else if (x == null && y == null) {
 				
 				if (!backtrack(sat, CP, CC, shift)) {
