@@ -85,16 +85,6 @@ public class Solver2 {
 	static ArrayList<Integer> countSP;
 	static int iSP;
 	
-	/*
-	 * Variables used for clause learning
-	 */
-	static ArrayList<ArrayList<Cause>> reason;
-	static ArrayList<ArrayList<Cause>> G1, G2;
-	static int decisionLevel;
-	static int[] P1;
-	static int[] P2;
-	static Litteral conflict;
-	
 	
 	/*
 	 * Utilitaries
@@ -112,17 +102,6 @@ public class Solver2 {
 		}
 	}
 	
-	public static void clearP1() {
-		for (int i = 0 ; i < P1.length ; i++) {
-			P1[i] = 0;
-		}
-	}
-	
-	public static void clearP2() {
-		for (int i = 0 ; i < P2.length ; i++) {
-			P2[i] = 0;
-		}
-	}
 	
 	public static void clearArray(Object [] array) {
 		for (int index = 0 ; index < array.length ; index ++) array[index] = null;
@@ -642,11 +621,6 @@ public class Solver2 {
 		int [] statesClauses = new int [sat.getNbClauses()];
 		int idLitteral = 0;
 		
-		int [] occurences = new int [decisionLevel];
-		
-		ArrayList<ArrayList<Cause>> G;
-		if (set == 1) G = G1;
-		else G = G2;
 		
 		for (Litteral l : L) {
 			if (l == null) break;
@@ -654,23 +628,16 @@ public class Solver2 {
 			propagateds[l.getId()] = 1;
 			
 			if (set == 1) {
-				P1[l.getId()] = 1;
-				/**/
 				if (sat.getLitteralsStates()[getIndex(l.getId())] == 0) {
 					X[iX] = l;
 					iX ++;
 				}
-				if (updateGraph)
-					G1.get(l.getId()).add(new Cause(couple, decisionLevel));
+					
 			} else if (set == 2) {
-				P2[l.getId()] = 1;
-				
 				if (sat.getLitteralsStates()[getIndex(l.getId())] == 0) {
 					Y[iY] = l;
 					iY ++;
 				}
-				if (updateGraph)
-					G2.get(l.getId()).add(new Cause(couple, decisionLevel));
 			}
 		}
 		
@@ -682,12 +649,7 @@ public class Solver2 {
 			//ArrayList<Integer> toShift = new ArrayList<Integer>();
 			int toShift = 0;
 			for (int i = 1 ; i < occ[nl.getId()][0] + 1 ; i++) {
-				
-				//if (occ[nl.getId()][i] == -1) {
-				//	Utils.shiftToEnd(occ[nl.getId()], i);
-				//	occ[nl.getId()][0] --;
-				//}
-				
+								
 				if (occ[nl.getId()][i] == -1 ) {
 					System.out.println("");
 				}
@@ -723,21 +685,6 @@ public class Solver2 {
 								
 								indexLitteral ++;
 								
-								if (updateGraph) {
-									
-									@SuppressWarnings("unused")
-									Litteral l1 = L[indexLitteral];
-									@SuppressWarnings("unused")
-									Litteral l2 = L[indexLitteral-1];
-								
-									ArrayList<Cause> causes = new ArrayList<Cause>();
-									clearArray(occurences);
-									//causes.addAll(getCauses(l1, G, occurences));
-									//causes.addAll(getCauses(l2, G, occurences));
-								
-									G.get(conflict.getId()).addAll(causes);
-								}
-								
 								return false;
 							}
 						} else {
@@ -751,37 +698,13 @@ public class Solver2 {
 								
 								if (set == 1) {
 									X[iX] = y;
-									if (y != null) P1[y.getId()] = 1;
 									iX ++;
 								} else if (set == 2) {
-									if (y != null) P2[y.getId()] = 1;
 									Y[iY] = y;
 									iY ++;
 								}
 								
-								if (updateGraph) {
-									if (y.getId() % 2 == 0) {
-										//G.get(x.getId()).add(new Cause(couple, decisionLevel));
-										clearArray(occurences);
-										for (Litteral litteral : sat.getClauses().get(y.getIdVariable()).getLitterals()) {
-											if (!litteral.equals(y)) {
-												Litteral neg = negation(sat, litteral);
-												ArrayList<Cause> causes = new ArrayList<Cause>();
-												if (propagateds[neg.getId()] == 0) {
-													causes.addAll(getCauses(neg, reason, occurences));
-												} else {
-													causes.addAll(getCauses(neg, G, occurences));
-												}
-												G.get(y.getId()).addAll(causes);
-											}
-										}
-									} else {
-										//rappel : y est propagé par l
-										clearArray(occurences);
-										ArrayList<Cause> causes = getCauses(l, G, occurences);
-										G.get(y.getId()).addAll(causes);
-									}
-								}
+								
 								
 								if (action == 2 && result.get(y.getId()) == 2) {
 									LP[iLP] = y;
@@ -800,19 +723,6 @@ public class Solver2 {
 								Utils.shiftAll(occ[nl.getId()], toShift);
 								toShift = 0;
 								
-								if (updateGraph) {
-									indexLitteral ++;
-									Litteral l1 = L[indexLitteral];
-									Litteral l2 = L[indexLitteral-1];
-									
-									clearArray(occurences);
-									ArrayList<Cause> causes = new ArrayList<Cause>();
-									causes.addAll(getCauses(l1, G, occurences));
-									causes.addAll(getCauses(l2, G, occurences));
-								
-									G.get(conflict.getId()).addAll(causes);
-								}
-								
 								return false;
 							}
 						} else { 
@@ -825,36 +735,11 @@ public class Solver2 {
 								result.incr(x.getId());
 								
 								if (set == 1) {
-									if (x != null) P1[x.getId()] = 1;
 									X[iX] = x;
 									iX ++;
 								} else if (set == 2) {
-									if (x != null) P2[x.getId()] = 1;
 									Y[iY] = x;
 									iY ++;
-								}
-								
-								if (updateGraph) {
-									if (x.getId() % 2 == 0) {
-										//G.get(x.getId()).add(new Cause(couple, decisionLevel));
-										clearArray(occurences);
-										for (Litteral litteral : sat.getClauses().get(x.getIdVariable()).getLitterals()) {
-											if (!litteral.equals(x)) {
-												Litteral neg = negation(sat, litteral);
-												ArrayList<Cause> causes = new ArrayList<Cause>();
-												if (propagateds[neg.getId()] == 0)
-													causes.addAll(getCauses(neg, reason, occurences));
-												else
-													causes.addAll(getCauses(neg, G, occurences));
-												G.get(x.getId()).addAll(causes);
-											}
-										}
-									} else {
-										//rappel : y est propagé par l
-										clearArray(occurences);
-										ArrayList<Cause> causes = getCauses(l, G, occurences);
-										G.get(x.getId()).addAll(causes);
-									}
 								}
 								
 								if (action == 2 && result.get(x.getId()) == 2) {
@@ -909,19 +794,13 @@ public class Solver2 {
 						
 						Collections.swap(c.getLitterals(), 1, coupleAff.getValue1());
 						sat.setCouplePtr(c.getId(), c.get(0), c.get(1));
-						
-						//Utils.shiftAll(occ[nl.getId()], toShift);
-						//toShift = 0;
+
 					}
-				//shift ici
-					
+				
 				}
-				//Utils.shiftAll(occ[nl.getId()], toShift);
-				//toShift = 0;
 			}
 			Utils.shiftAll(occ[nl.getId()], toShift);
 			toShift = 0;
-			//occ[nl.getId()][0] -= toShift;
 			affect(sat, l);
 			indexLitteral ++;
 			l = L[indexLitteral];
@@ -982,8 +861,6 @@ public class Solver2 {
 		restoreAll(sat, X, shift);
 		boolean result2 = propagation(sat, L2, 2, 2, true);
 		
-		int [] occurences = new int [decisionLevel];
-		
 		restoreAll(sat, Y, shift);
 		
 		result.clear();
@@ -991,113 +868,30 @@ public class Solver2 {
 		if (result1 && !result2) {
 			PA = X.clone();
 			iPA = X.length;
-			
-			ArrayList<Cause> causesConflict = getCauses(conflict, G2);
-			
-			int i = 0;
-			while(PA[i] != null) {
-				Litteral l = PA[i];
-				clearArray(occurences);
-				ArrayList<Cause> causes = getCauses(l, G1);
-				
-				for (Cause cause : causesConflict) {
-					if (occurences[cause.getLevel()-1] == 0) {
-						reason.get(l.getId()).add(cause);
-						occurences[cause.getLevel()-1] = 1;
-					}
-				}
-				
-				for (Cause cause : causes) {
-					if (occurences[cause.getLevel()-1] == 0) {
-						reason.get(l.getId()).add(cause);
-						occurences[cause.getLevel()-1] = 1;
-					}
-				}
-				
-				//reason.get(l.getId()).addAll(causesConflict);
-				//reason.get(l.getId()).addAll(causes);
-				i++;
-			}
-			
+		
 			clearArray(L1);
 			clearArray(L2);
-			clearGraph(G1);
-			clearGraph(G2);
 		}
+		
 		else if (!result1 && result2) {
 			PA = Y.clone();
-			iPA = Y.length;
-			
-			ArrayList<Cause> causesConflict = getCauses(conflict, G1);
-			
-			int i = 0;
-			while(PA[i] != null) {
-				Litteral l = PA[i];
-				clearArray(occurences);
-				ArrayList<Cause> causes = getCauses(l, G2);
-				
-				for (Cause cause : causesConflict) {
-					if (occurences[cause.getLevel()-1] == 0) {
-						reason.get(l.getId()).add(cause);
-						occurences[cause.getLevel()-1] = 1;
-					}
-				}
-				
-				for (Cause cause : causes) {
-					if (occurences[cause.getLevel()-1] == 0) {
-						reason.get(l.getId()).add(cause);
-						occurences[cause.getLevel()-1] = 1;
-					}
-				}
-				
-				//reason.get(l.getId()).addAll(causesConflict);
-				//reason.get(l.getId()).addAll(causes);
-				i++;
-			}
-			
+			iPA = Y.length;			
 			clearArray(L1);
 			clearArray(L2);
-			clearGraph(G1);
-			clearGraph(G2);
 		}
+		
 		else if (!result1 && !result2) {
 			PA = null;
-			iPA = 0;
-			
-			ArrayList<Cause> causesConflict = new ArrayList<Cause>();
-			clearArray(occurences);
-			causesConflict.addAll(getCauses(conflict, G1, occurences));
-			causesConflict.addAll(getCauses(conflict, G1, occurences));
-			
-			reason.get(conflict.getId()).addAll(causesConflict);
-			
+			iPA = 0;	
 			clearArray(L1);
 			clearArray(L2);
-			clearGraph(G1);
-			clearGraph(G2);
 		}
+		
 		else {
 			PA = LP.clone();
 			iPA = LP.length;
-			
-			int i = 0;
-			while(PA[i] != null) {
-				Litteral l = PA[i];
-				
-				ArrayList<Cause> causes = new ArrayList<Cause>();
-				clearArray(occurences);
-				causes.addAll(getCauses(l, G1, occurences));
-				causes.addAll(getCauses(l, G2, occurences));
-				
-				reason.get(l.getId()).addAll(causes);
-				
-				i++;
-			}
-			
 			clearArray(L1);
 			clearArray(L2);
-			clearGraph(G1);
-			clearGraph(G2);
 		}
 		
 	}
@@ -1450,7 +1244,6 @@ public class Solver2 {
 		
 		occ = new int [sat.getNbVariables() * 2][sat.getMaxOccurences() + 2];
 		
-		conflict  = new Litteral(sat.getNbVariables() * 2, -1);
 	}
 	
 	public static ArrayList<Cause> getCauses(Litteral l, ArrayList<ArrayList<Cause>> graph, int [] occurences){
@@ -1500,21 +1293,6 @@ public class Solver2 {
 		countSP = new ArrayList<Integer>();
 	}
 	
-	public static void initializeLearningVariables(SAT sat) {
-		reason = new ArrayList<ArrayList<Cause>>();
-		G1 = new ArrayList<ArrayList<Cause>>();
-		G2 = new ArrayList<ArrayList<Cause>>();
-		
-		for (int j = 0 ; j <= sat.getNbVariables() * 2 ; j++) {
-			reason.add(new ArrayList<Cause>());
-			G1.add(new ArrayList<Cause>());
-			G2.add(new ArrayList<Cause>());
-		}
-		
-		decisionLevel = 1;
-		P1 = new int[sat.getNbVariables() * 2];
-		P2 = new int[sat.getNbVariables() * 2];	
-	}
 	
 	/**
 	 * Solve the csp
@@ -1555,7 +1333,6 @@ public class Solver2 {
 
 		initializeSymmetriesVariables(csp, sat);
 		int resultSymmetries = 0;
-		initializeLearningVariables(sat);
 		
 		
 		while (true) {		
@@ -1621,8 +1398,6 @@ public class Solver2 {
 				L2[1] = y;
 				
 				propagationAll(sat, L1, L2, shift);
-				
-				decisionLevel++;
 				
 				clearX(); 
 				clearY(); 
