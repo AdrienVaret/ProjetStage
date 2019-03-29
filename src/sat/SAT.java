@@ -1,5 +1,9 @@
 package sat;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import utils.GenericCouple;
 
@@ -95,6 +99,23 @@ public class SAT {
 	
 	public void setNbLitteralsSat(int nbLitteralsSat) {
 		this.nbLitteralsSat = nbLitteralsSat;
+	}
+	
+	public void exportToCNFFile(String outputFileName) {
+		String toString = toString();
+		String [] arrayToString = toString.split("\n");
+		
+		File outputFile = new File(outputFileName);
+		try {
+			BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
+			for (String line : arrayToString) {
+				writer.write(line + "\n");
+			}
+			writer.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	@Override

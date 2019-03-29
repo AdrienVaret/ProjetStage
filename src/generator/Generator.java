@@ -18,6 +18,209 @@ import utils.GenericCouple;
 
 public class Generator {
 
+	public static GenericCouple<BinCSP> generateRandomGraphDS(int nbVertexs, int nbColors, double density){
+		ArrayList<Variable> variables = new ArrayList<Variable>();
+		ArrayList<Domain> domains = new ArrayList<Domain>();
+		ArrayList<Constraint> constraints = new ArrayList<Constraint>();
+		ArrayList<Relation> relations = new ArrayList<Relation>();
+		
+		int nbMaxEdges = (nbVertexs * (nbVertexs - 1)) / 2;
+		int nbEdges = (int) (density * nbMaxEdges);
+		
+		int [][] M = new int [nbVertexs][nbVertexs];
+		
+		int i = 0;
+		while(i < nbEdges) {
+			int x = ThreadLocalRandom.current().nextInt(0, nbVertexs);
+			int y = ThreadLocalRandom.current().nextInt(0, nbVertexs);
+			
+			if ((x != y) && (M[x][y] == 0)) {
+				M[x][y] = 1;
+				M[y][x] = 1;
+				i ++;
+			}
+		}
+		
+		int v = 0;
+		for (i = 0 ; i < nbVertexs ; i++) {
+			String name = "D" + Integer.toString(i); 
+			ArrayList<String> values = new ArrayList<String>();
+			for(int j = 0 ; j < nbColors ; j++) {
+				values.add(Integer.toString(v));
+				v++;
+			}
+			domains.add(new Domain(name, values));
+		}
+		
+		for (i = 0 ; i < nbVertexs ; i++) {
+			String name = "X" + i;
+			variables.add(new Variable(name, domains.get(i), i));
+		}
+		
+		for (i = 0 ; i < nbVertexs ; i++) {
+			for (int j = i + 1 ; j < nbVertexs ; j++) {
+				if (M[i][j] == 1) {
+					
+					Variable x = variables.get(i);
+					Variable y = variables.get(j);
+					
+					ArrayList<Couple> couples = new ArrayList<Couple>();
+					
+					for (int col = 0 ; col < nbColors ; col ++) {
+						String v1 = Integer.toString((i * nbColors) + col);
+						String v2 = Integer.toString((j * nbColors) + col);
+						couples.add(new Couple(v1, v2));
+					}
+					
+					Relation relation = new Relation(TypeRelation.R_CONFLICTS, couples);
+					Constraint constraint = new Constraint(x, y, relation);
+					
+					constraints.add(constraint);
+					relations.add(relation);
+				}
+			}
+		}
+		
+		BinCSP csp = new BinCSP(variables.size(), domains.size(), constraints.size(), relations.size(),
+		          variables, domains, constraints, relations);
+		BinCSP csp2 = conflictToSupports(csp, nbColors, M);
+		return new GenericCouple<BinCSP> (csp, csp2);
+	}
+	
+	public static GenericCouple<BinCSP> generateRandomUncompleteGraph(int nbVertexs, int nbColors, double density) {
+		ArrayList<Variable> variables = new ArrayList<Variable>();
+		ArrayList<Domain> domains = new ArrayList<Domain>();
+		ArrayList<Constraint> constraints = new ArrayList<Constraint>();
+		ArrayList<Relation> relations = new ArrayList<Relation>();
+		
+		int value = 0;
+		for (int i = 0 ; i < nbVertexs ; i++) {
+			ArrayList<String> values = new ArrayList<String>();
+			for (int j = 0 ; j < nbColors ; j++) {
+				values.add(Integer.toString(value));
+				value++;
+			}
+			domains.add(new Domain("D" + i, values));
+		}
+		
+		for (int i = 0 ; i < nbVertexs ; i++) {
+			variables.add(new Variable("X" + i, domains.get(i), i));
+		}
+		
+		int nbMaxEdges = (nbVertexs * (nbVertexs - 1)) / 2;
+		int nbEdges = (int) (density * nbMaxEdges);
+		
+		int [][] M = new int [nbVertexs][nbVertexs];
+		
+		int i = 0;
+		while(i < nbEdges) {
+			int x = ThreadLocalRandom.current().nextInt(0, nbVertexs);
+			int y = ThreadLocalRandom.current().nextInt(0, nbVertexs);
+			
+			if ((x != y) && (M[x][y] == 0)) {
+				M[x][y] = 1;
+				M[y][x] = 1;
+				i ++;
+			}
+		}
+		
+		for (i = 0 ; i < nbVertexs ; i++) {
+			for (int j = i + 1 ; j < nbVertexs ; j++) {
+				if (M[i][j] == 1) {
+					Variable x = variables.get(i);
+					Variable y = variables.get(j);
+					
+					ArrayList<Couple> couples = new ArrayList<Couple>();
+					for (int k = 0 ; k < nbColors ; k++) {
+						String vx = x.getDomain().get(k);
+						String vy = y.getDomain().get(k);
+						couples.add(new Couple(vx, vy));
+					}
+					
+					Relation relation = new Relation(TypeRelation.R_CONFLICTS, couples);
+					Constraint constraint = new Constraint(x, y, relation);
+					
+					relations.add(relation);
+					constraints.add(constraint);
+				}
+			}
+		}
+		
+		BinCSP csp = new BinCSP(variables.size(), domains.size(), constraints.size(), relations.size(),
+		          variables, domains, constraints, relations);
+		BinCSP csp2 = conflictToSupports(csp, nbColors, M);
+		
+		return new GenericCouple<BinCSP>(csp, csp2);
+	}
+	
+	public static GenericCouple<BinCSP> generatePigeonDirectSupport(int n, int d){
+		BinCSP csp = generatePigeons(n, d);
+		int [][] M = new int [n][n];
+		for (int i = 0 ; i < n ; i++) {
+			for (int j = i+1 ; j < n ; j++) {
+				M[i][j] = 1;
+			}
+		}
+		BinCSP csp2 = conflictToSupports(csp, d, M);
+		return new GenericCouple<BinCSP> (csp, csp2);
+	}
+	
+	public static GenericCouple<BinCSP> generateCompleteGraphDirectSupport(int nbVertexs, int nbColors){
+		ArrayList<Variable> variables = new ArrayList<Variable>();
+		ArrayList<Domain> domains = new ArrayList<Domain>();
+		ArrayList<Constraint> constraints = new ArrayList<Constraint>();
+		ArrayList<Relation> relations = new ArrayList<Relation>();
+		
+		int v = 0;
+		for (int i = 0 ; i < nbVertexs ; i++) {
+			String name = "D" + Integer.toString(i); 
+			ArrayList<String> values = new ArrayList<String>();
+			for(int j = 0 ; j < nbColors ; j++) {
+				values.add(Integer.toString(v));
+				v++;
+			}
+			domains.add(new Domain(name, values));
+		}
+		
+		for (int i = 0 ; i < nbVertexs ; i++) {
+			String name = "X" + i;
+			variables.add(new Variable(name, domains.get(i), i));
+		}
+		
+		int [][] M = new int [nbVertexs][nbVertexs];
+		
+		int r = 0;
+		for (int i = 0 ; i < nbVertexs ; i++) {
+			for (int j = i+1 ; j < nbVertexs ; j++) {
+				Variable x = variables.get(i);
+				Variable y = variables.get(j);
+				
+				M[i][j] = 1;
+				
+				ArrayList<Couple> couples = new ArrayList<Couple>();
+				
+				for (int col = 0 ; col < nbColors ; col ++) {
+					String v1 = Integer.toString((i * nbColors) + col);
+					String v2 = Integer.toString((j * nbColors) + col);
+					couples.add(new Couple(v1, v2));
+				}
+				
+				Relation relation = new Relation(TypeRelation.R_CONFLICTS, couples);
+				Constraint constraint = new Constraint(x, y, relation);
+				
+				constraints.add(constraint);
+				relations.add(relation);
+			}
+		}
+		
+		BinCSP csp = new BinCSP(variables.size(), domains.size(), constraints.size(), relations.size(),
+		                        variables, domains, constraints, relations);
+		
+		BinCSP csp2 = conflictToSupports(csp, nbColors, M);
+		
+		return new GenericCouple<BinCSP> (csp, csp2);
+	}
+	
 	public static GenericCouple<BinCSP> generateExampleConflictSupport() {
 		
 		ArrayList<Variable> variables = new ArrayList<Variable>();
@@ -858,6 +1061,25 @@ public class Generator {
 	}
 	
 	public static void main(String [] args) {
-		GenericCouple<BinCSP> couple = generateRandomProblem(4, 3, 0.5, 3);
+		java.text.DecimalFormat df = new java.text.DecimalFormat("0.##");
+		for (int n = 10 ; n <= 20 ; n += 5) {
+			for (int d = 3 ; d <= n - 2 ; d += 2) {
+				for (double density = 0.1 ; density < 1.0 ; density += (float)0.1) {
+					for (double hardness = 0.1 ; hardness < 1.0 ; hardness += (float)0.1) {
+						int nbConstraint = (int)((d*d) * hardness);
+						GenericCouple<BinCSP> couple = generateRandomProblem(n, d, density, nbConstraint);
+						SAT sat1 = BinCSPConverter.directEncoding(couple.getV1());
+						SAT sat2 = BinCSPConverter.supportEncoding(couple.getV2());
+						sat1.exportToCNFFile("instances/random_csp_" + n + "_" + d + "_" + density + "_" + hardness + "_direct.cnf");
+						sat2.exportToCNFFile("instances/random_csp_" + n + "_" + d + "_" + density + "_" + hardness + "_support.cnf");
+						System.out.println("instances/random_csp_" + n + "_" + d + "_" + density + "_" + hardness);
+					}
+				}
+			}
+		} 
+		
+		//GenericCouple<BinCSP> couple = generateRandomProblem(14, 13, , nbConstraint);
+		
+		
 	}
 }

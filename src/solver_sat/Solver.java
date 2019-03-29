@@ -37,6 +37,7 @@ public class Solver {
 	static boolean flagSymetries = false;
 	static boolean flagNoMoreSymmetries = false;
 	static boolean flagSupport = false;
+	static boolean flagDisplay = true;
 	
 	/*
 	 * Time declarations
@@ -48,6 +49,7 @@ public class Solver {
 	static long restoreTime;
 	static long solveTime;
 	static long finalTime;
+	static long timeComputeSolution;
 	
 	/*
 	 * Statics variable
@@ -235,6 +237,8 @@ public class Solver {
 					restore (sat, toRestore);
 				}
 				
+				//ep non mis à jour ? origine du pb ??
+				
 				iep[idCC] = 0;
 				idCC --;
 				int nb = CC.get(idCC);
@@ -266,6 +270,8 @@ public class Solver {
 					iep[idCC] ++;
 				}
 				clearX();
+			} else {
+				System.out.println("");
 			}
 		}
 		
@@ -282,7 +288,9 @@ public class Solver {
 	
 	public static void deductMultipleSolution(SAT sat, BinCSP csp, ArrayList<Integer> CC) {
 		
-		int [] initialStates = sat.getLitteralsStates().clone();
+		long begin = System.currentTimeMillis();
+		
+		//int [] initialStates = sat.getLitteralsStates().clone();
 		
 		ep = new Litteral [csp.getNbVariables()][sat.getNbVariables()*2]; 
 		iep = new int [csp.getNbVariables()];
@@ -387,9 +395,18 @@ public class Solver {
 			}
 		}
 		
-		for (int i = 0 ; i < initialStates.length ; i++) {
-			sat.getLitteralsStates()[i] = initialStates[i];
+		//for (int i = 0 ; i < initialStates.length ; i++) {
+		//	sat.getLitteralsStates()[i] = initialStates[i];
+		//}
+		
+		int max = iep[0];
+		for (int i = 0 ; i < max ; i++) {
+			Litteral toRestore = ep[0][i];
+			restore(sat, toRestore);
 		}
+		
+		long end = System.currentTimeMillis();
+		timeComputeSolution += (end - begin);
 	}
 	
 	/**
@@ -482,6 +499,7 @@ public class Solver {
 			if (sat.getLitteralState(l1id) != -1) {
 				long end = System.currentTimeMillis();
 				selectCoupleTime += (end - begin);
+				nbNodes ++;	
 				return new GenericCouple<Litteral> (l1, null);
 			} else {
 				long end = System.currentTimeMillis();
@@ -497,18 +515,21 @@ public class Solver {
 			if (sat.getLitteralState(l1id) != -1 && sat.getLitteralState(l2id) != -1) {
 				long end = System.currentTimeMillis();
 				selectCoupleTime += (end - begin);
+				nbNodes ++;	
 				return new GenericCouple<Litteral> (l1, l2);
 			}
 		
 			else if (sat.getLitteralState(l1id) != -1 && sat.getLitteralState(l2id) == -1) {
 				long end = System.currentTimeMillis();
 				selectCoupleTime += (end - begin);
+				nbNodes ++;	
 				return new GenericCouple<Litteral> (l1, null);
 			}
 		
 			else if (sat.getLitteralState(l1id) == -1 && sat.getLitteralState(l2id) != -1) {
 				long end = System.currentTimeMillis();
 				selectCoupleTime += (end - begin);
+				nbNodes ++;	
 				return new GenericCouple<Litteral> (l2, null);
 			}
 		
@@ -1315,7 +1336,8 @@ public class Solver {
 	public static void displayAllSolutions(SAT sat, BinCSP csp, int [] shift) {
 		int nbSolutions = 1;
 		for (Litteral [] L : solutions) {
-			//System.out.println("# Solution " + nbSolutions + " : ");
+			if (flagDisplay) 
+				System.out.println("# Solution " + nbSolutions + " : ");
 			for (Litteral l : L) {
 				int id = 0, begin = 0, indexVariable = 0;
 				for (int i = 0 ; i < shift.length ; i++) {
@@ -1333,9 +1355,11 @@ public class Solver {
 				int indexValue = id - begin;
 				String name = csp.getVariables().get(indexVariable).getName();
 				String value = csp.getVariables().get(indexVariable).getDomain().get(indexValue);
-				//System.out.println("# " + name + " = " + value);
+				if (flagDisplay) 
+					System.out.println("# " + name + " = " + value);
 			}
-			//System.out.println("##");
+			if (flagDisplay)
+				System.out.println("##");
 			nbSolutions ++;
 		}
 	}
@@ -1564,7 +1588,7 @@ public class Solver {
 				break;
 			}
 			
-			nbNodes ++;	
+			//nbNodes ++;	
 			
 			Litteral x = couple.getV1();
 			Litteral y = couple.getV2();
@@ -1649,7 +1673,7 @@ public class Solver {
 					clearX();
 					
 					if (modelExists(csp,sat)) {
-						displayPC(CC);
+						//displayPC(CC);
 						if (flagAllSolutions) {
 							deductMultipleSolution(sat, csp, CC);
 							if (!backtrack(sat, CP, CC, shift)) {
@@ -1686,7 +1710,7 @@ public class Solver {
 					iA ++;
 				}
 				
-				nbNodes ++;
+				//nbNodes ++;
 				
 				nx = negation(sat, x);
 				
@@ -1810,6 +1834,7 @@ public class Solver {
 		System.out.println("restoreTime : " + restoreTime + " ms");
 		System.out.println("selectCoupleTime : " + selectCoupleTime + " ms");
 		System.out.println("findUnaffTime : " + findUnaffectedTime + " ms");
+		System.out.println("TimeComputeSolution : " + timeComputeSolution);
 		System.out.println("solveTime : " + solveTime + " ms");
 		System.out.println("finalTime : " + finalTime + " ms");
 	}
@@ -1820,41 +1845,18 @@ public class Solver {
 		restoreTime = 0;
 		selectCoupleTime = 0;
 		findUnaffectedTime = 0;
+		timeComputeSolution = 0;
 		solveTime = 0;
 		finalTime = 0;
 	}
 	
-	public static void main(String [] args) {
-		flagAllSolutions = true;
-		flagDomHeuristic = false;
-		flagDegHeuristic = true;
+	public static void clearVariables() {
 		
-		try {
-			w = new BufferedWriter(new FileWriter(new File("pc.txt")));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		long begin = System.currentTimeMillis();
-		flagSymetries = false;
-		flagSupport = false;
-		
-		//enericCouple<BinCSP> couple = Generator.generateExampleConflictSupport();
-		GenericCouple<BinCSP> couple = Generator.generateRandomProblem(10, 3, 0.9, 90);
-		
-		//GenericCouple<BinCSP> couple = GeneratorBis.generateExampleBug1();
-		
-		System.out.println(couple.getV1().toString());
-		
-		solve(couple.getV1());
-		
-		long end = System.currentTimeMillis();
-		finalTime = end - begin;
-		displayTime();
+		//displayTime();
 		
 		System.out.println("#########");
 		
-		flagSupport = true;
+		//flagSupport = true;
 		ic = 0;
 		iA = 0;
 		nbNodes = 0;
@@ -1873,13 +1875,88 @@ public class Solver {
 		CC.clear();
 		CP.clear();
 		
+		for (int i = 0 ; i < iP ; i++) {
+			P[i] = null;
+		}
+		iP = 0;
+		
 		resetTimer();
+	}
+	
+	public static void main(String [] args) {
+		flagAllSolutions = true;
+		flagDomHeuristic = false;
+		flagDegHeuristic = true;
+		flagSupport = false;
+		flagDisplay = true;
+		
+		long symDE, nsymDE, symSE, nsymSE;
+		int nodeSymDE, nodeNSymDE, nodeSymSE, nodeNSymSE;
+		
+		int nbVertex = 20;
+		int nbColors = 9;
+		double density = 0.9;
+		
+		//GenericCouple<BinCSP> couple = Generator.generateCompleteGraphDirectSupport(nbVertex, nbColors);
+		//GenericCouple<BinCSP> couple = Generator.generatePigeonDirectSupport(nbVertex, nbColors);
+		//GenericCouple<BinCSP> couple = Generator.generateRandomUncompleteGraph(nbVertex, nbColors, density);
+		GenericCouple<BinCSP> couple = Generator.generateExampleConflictSupport();
+		
+		System.out.println(nbVertex + " vertex, " + nbColors + " colors");
+		System.out.println("Direct Encoding");
+		
+		flagSymetries = false;
+		long begin = System.currentTimeMillis();
+		//solve(couple.getV1());
+		nodeNSymDE = nbNodes;
+		long end = System.currentTimeMillis();	
+		nsymDE = end - begin;
+		System.out.println("DE without symmetries : " + nsymDE + " ms, " + nodeNSymDE + " nodes");
+		
+		
+		clearVariables();
+		
+		flagSymetries = false;
 		begin = System.currentTimeMillis();
-		
-		solve(couple.getV2());
-		
+		solve(couple.getV1());
+		nodeSymDE = nbNodes;
 		end = System.currentTimeMillis();
-		finalTime = end - begin;
+		symDE = end - begin;
+		System.out.println("DE with symmetries : " + symDE + " ms, " + nodeSymDE + " nodes");
+		
 		displayTime();
+	/*	
+		System.out.println("Support encoding");
+		clearVariables();
+		flagSupport = true;
+		
+		flagSymetries = false;
+		begin = System.currentTimeMillis();
+		//solve(couple.getV2());
+		nodeNSymSE = nbNodes;
+		end = System.currentTimeMillis();
+		nsymSE = end - begin;
+		System.out.println("SE without symmetries : " + nsymSE + " ms, " + nodeNSymSE + "nodes");
+		
+		clearVariables();
+		
+		flagSymetries = true;
+		begin = System.currentTimeMillis();
+		solve(couple.getV2());
+		nodeSymSE = nbNodes;
+		end = System.currentTimeMillis();
+		symSE = end - begin;
+		System.out.println("SE with symmetries : " + symSE + " ms, " + nodeSymSE + "nodes");
+		
+		System.out.println(nbVertex + " " + nbColors + " " + density + " " + symDE + " " + nodeSymDE + " "
+				         + nsymDE + " " + nodeNSymDE + " " +  symSE + " " + nodeSymSE + " "
+				         + nsymSE + " " + nodeNSymSE);
+		
+		SAT satDirect = BinCSPConverter.directEncoding(couple.getV1());
+		SAT satSupport = BinCSPConverter.supportEncoding(couple.getV2());
+		
+		satDirect.exportToCNFFile("instances/rand_" + nbVertex + "_" + nbColors + "_" + density + "_direct.cnf");
+		satSupport.exportToCNFFile("instances/rand_" + nbVertex + "_" + nbColors + "_" + density + "_support.cnf");
+		*/
 	}
 }

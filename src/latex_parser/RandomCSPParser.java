@@ -1,0 +1,74 @@
+package latex_parser;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+
+public class RandomCSPParser implements Parser{
+
+	int lineNumber = 1;
+	
+	public void header(BufferedWriter writer) throws IOException {
+		writer.write("\\begin{center} \n");
+		writer.write("\t\\begin{tabular}{ c | c | c | c | c | c} \n");
+		writer.write("\t\t\\hline \n");
+		writer.write("\t\tn & d & density & hardness & DE & SE \\\\ \\hline \n");
+	}
+	
+	public void footer(BufferedWriter writer) throws IOException {
+		writer.write("\t\t\\hline \n");
+		writer.write("\t\\end{tabular} \n");
+		writer.write("\\end{center}");
+	}
+	
+	@Override
+	public void parse(String inputFileName, String outputFileName) {
+		try {
+			@SuppressWarnings("resource")
+			BufferedReader reader = new BufferedReader(new FileReader(new File(inputFileName)));
+			String line = null;
+				
+			BufferedWriter writer = new BufferedWriter(new FileWriter(outputFileName));
+			
+			header(writer);
+			
+			while((line = reader.readLine()) != null) {
+				String [] splittedLine = line.split(" ");
+				
+				String n = splittedLine[0];
+				String d = splittedLine[1];
+				String density = splittedLine[2];
+				String hardness = splittedLine[3];
+				String timeDE = splittedLine[4];
+				String nodeDE = splittedLine[5];
+				String timeSE = splittedLine[6];
+				String nodeSE = splittedLine[7];
+					
+				writer.write("\t\t" + n + " & " + d + " & " + density + " & " + hardness + " & " + timeDE + "/" + nodeDE + " & " + timeSE + "/" + nodeSE + " \\\\ \\hline \n");
+				
+				lineNumber ++;
+				
+				if (lineNumber % 50 == 0) {
+					footer(writer);
+					header(writer);
+				}
+				
+			}
+			
+			footer(writer);
+			
+			writer.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ArrayIndexOutOfBoundsException e) {
+			System.out.println("Erreur à la ligne " + lineNumber);
+		}
+		
+	}
+
+	
+}
