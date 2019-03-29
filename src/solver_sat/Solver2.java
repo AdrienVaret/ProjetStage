@@ -1,6 +1,8 @@
 package solver_sat;
 
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,6 +10,7 @@ import bincsp.BinCSP;
 import bincsp.Variable;
 import conversion.BinCSPConverter;
 import generator.Generator;
+import generator.GeneratorBis;
 import sat.Clause;
 import sat.Litteral;
 import sat.SAT;
@@ -683,6 +686,11 @@ public class Solver2 {
 			int toShift = 0;
 			for (int i = 1 ; i < occ[nl.getId()][0] + 1 ; i++) {
 				
+				//if (occ[nl.getId()][i] == -1) {
+				//	Utils.shiftToEnd(occ[nl.getId()], i);
+				//	occ[nl.getId()][0] --;
+				//}
+				
 				if (occ[nl.getId()][i] == -1 ) {
 					System.out.println("");
 				}
@@ -702,7 +710,6 @@ public class Solver2 {
 							//ICI : ajouter le littéral conflit
 							
 							Utils.shiftAll(occ[nl.getId()], toShift);
-							
 							toShift = 0;
 							
 							return false;
@@ -893,6 +900,7 @@ public class Solver2 {
 						}
 
 						occ[yid][index] = -1;
+						//toShift.add(index);
 						toShift ++;
 						
 						int lid = coupleAff.getValue2().getId();
@@ -904,12 +912,19 @@ public class Solver2 {
 						
 						Collections.swap(c.getLitterals(), 1, coupleAff.getValue1());
 						sat.setCouplePtr(c.getId(), c.get(0), c.get(1));
-					}					
+						
+						//Utils.shiftAll(occ[nl.getId()], toShift);
+						//toShift = 0;
+					}
+				//shift ici
+					
 				}
+				//Utils.shiftAll(occ[nl.getId()], toShift);
+				//toShift = 0;
 			}
 			Utils.shiftAll(occ[nl.getId()], toShift);
 			toShift = 0;
-
+			//occ[nl.getId()][0] -= toShift;
 			affect(sat, l);
 			indexLitteral ++;
 			l = L[indexLitteral];
@@ -1143,7 +1158,7 @@ public class Solver2 {
 		for (int i = 0 ; i < nbChoices ; i++) {
 			Litteral l = C[iC-1];
 			int lid = getIndex(l.getId());
-			//sat.getChoises()[lid] = 0;
+			sat.getChoises()[lid] = 0;
 			toPropage[iTP] = negation(sat, l);
 			iTP ++;
 			C[iC-1] = null;
@@ -1210,7 +1225,7 @@ public class Solver2 {
 				for (int i = 0 ; i < nbChoices ; i++) {
 					Litteral l = C[iC-1];
 					int lid = getIndex(l.getId());
-					//sat.getChoises()[lid] = 0;
+					sat.getChoises()[lid] = 0;
 					toPropage[iTP] = negation(sat, l);
 					iTP ++;
 					C[iC-1] = null;
@@ -1284,7 +1299,9 @@ public class Solver2 {
 	public static void initializeOcc(SAT sat) {
 		
 		for (int i = 0 ; i < sat.getNbVariables() * 2 ; i++) {
-			occ[i][1] = -1;
+			for (int j = 1 ; j < occ[i].length ; j++) {
+				occ[i][j] = -1;
+			}
 		}
 		
 		for (int i = 0 ; i < sat.getNbClauses() ; i++) {
@@ -1314,7 +1331,6 @@ public class Solver2 {
 				occ[x.getId()][(occ[x.getId()][0]) + 1] = -1;
 			}
 		}
-		System.out.println("");
 	}
 	
 	public static void displayAllSolutions(SAT sat, BinCSP csp, int [] shift) {
@@ -1597,8 +1613,8 @@ public class Solver2 {
 				int xid = getIndex(x.getId());
 				int yid = getIndex(y.getId());
 				
-				//sat.getChoises()[xid] = 1;
-				//sat.getChoises()[yid] = 1;
+				sat.getChoises()[xid] = 1;
+				sat.getChoises()[yid] = 1;
 				
 				Litteral [] L1 = new Litteral [sat.getNbVariables() * 2];
 				L1[0] = x;
@@ -1632,25 +1648,29 @@ public class Solver2 {
 					}
 				} else {
 					action = Action.HEURISTIC;
+					propagation(sat, PA, 0, 1, false);
+					clearPA();
 					
-					int index = 0;
-					
-					//affecte les littéraux de l'intersection et met à jour la taille des domaines
-					while (PA[index] != null) {
-						affect(sat, PA[index]);
-						P[iP] = PA[index];
-						int idVar = PA[index].getIdVariable();
-						if (PA[index].getId() % 2 == 0) domainsSizes[idVar] --;
+					for (int index = 0 ; index < iX ; index++) {
+						P[iP] = X[index];
 						iP ++;
-						index ++;
 					}
 					
-					CP.add(index);
+					CP.add(iX);
 					
 					variablesStates[idClause] = 1;
 					nbVariablesSat ++; 
+						
+					for (Litteral l : X) {
+						if (l == null) break;
+						int index = findIndex(shift, l.getId());
+						if (l.getId() % 2 == 1)
+							domainsSizes[index] --;
+					}
 					
-					clearPA();
+					sat.setNbLitteralsSat(sat.getNbLitteralsSat() + iX);
+					
+					clearX();
 					
 					if (modelExists(csp,sat)) {
 						//displayPC(CC);
@@ -1690,52 +1710,116 @@ public class Solver2 {
 					iA ++;
 				}
 				
+				//nbNodes ++;
+				
 				nx = negation(sat, x);
 				
 				C[iC] = x;
 				iC ++;
 				CC.add(1);
 				
-				action = Action.HEURISTIC;
+				int xid = getIndex(x.getId());
+				sat.getChoises()[xid] = 1;
+			
+				Litteral [] L1 = new Litteral[sat.getNbVariables() * 2];
+				L1[0] = x;
+				
+				/*boolean r = propagation(sat, L1, 0, 1, true); 
+				
+				//TODO: mettre à jour le graphe d'implication (ici un seul sous graphe donc simple ...)
+				decisionLevel ++;
+				
+				clearArray(L1);
+				
+				result.clear();
+				
+				if (!r) {
+					CP.add(0);
+					restoreAll(sat, X, shift);
 					
-				for (int index = 0 ; index < iX ; index ++) {
-					P[iP] = X[index];
-					iP ++;
-				}
-				CP.add(iX);
+					clearX();
+					clearY();
+					clearLP();
 					
-				variablesStates[idClause] = 1;
-				nbVariablesSat ++;
-					
-				clearLP();
-					
-				if (modelExists(csp,sat)) {
-					if (flagAllSolutions) {
-						deductMultipleSolution(sat, csp, CC);
-						if (!backtrack(sat, CP, CC, shift)) {
-							if (solutions.size() == 0)
-								System.out.println("# UNSATISFIABLE");
-							else {
-								System.out.println("# SATISFIABLE");
-								System.out.println("# " + solutions.size() + " solutions found");
-								displayAllSolutions(sat, csp, shift);
-							}
-							System.out.println("nb_nodes : " + nbNodes);
-							long end = System.currentTimeMillis();
-							solveTime = end - begin;
-							break;
+					if (!backtrack(sat, CP, CC, shift)) {
+						if (solutions.size() == 0)
+							System.out.println("# UNSATISFIABLE");
+						else {
+							System.out.println("# " + solutions.size() + " solutions found");
+							displayAllSolutions(sat, csp, shift);
 						}
-					} else {
-						//deductModel(sat);
-						//TODO MODIF
-						deductMultipleSolution(sat, csp, CC);
-						//displaySolution(csp, sat);
-						displayAllSolutions(sat, csp, shift);
 						System.out.println("nb_nodes : " + nbNodes);
 						long end = System.currentTimeMillis();
 						solveTime = end - begin;
 						break;
 					}
+				} else { */
+					action = Action.HEURISTIC;
+					
+					for (int index = 0 ; index < iX ; index ++) {
+						P[iP] = X[index];
+						iP ++;
+					}
+					CP.add(iX);
+					
+					variablesStates[idClause] = 1;
+					nbVariablesSat ++;
+					
+					for (Litteral l : X) {
+						if (l == null) break;
+						int index = findIndex(shift, l.getId());
+						if (l.getId() % 2 == 1) 
+							domainsSizes[index] --;
+					}
+					
+					sat.setNbLitteralsSat(sat.getNbLitteralsSat() + iX);
+					
+					clearX();
+					clearY();
+					clearLP();
+					
+					if (modelExists(csp,sat)) {
+						if (flagAllSolutions) {
+							deductMultipleSolution(sat, csp, CC);
+							if (!backtrack(sat, CP, CC, shift)) {
+								if (solutions.size() == 0)
+									System.out.println("# UNSATISFIABLE");
+								else {
+									System.out.println("# SATISFIABLE");
+									System.out.println("# " + solutions.size() + " solutions found");
+									displayAllSolutions(sat, csp, shift);
+								}
+								System.out.println("nb_nodes : " + nbNodes);
+								long end = System.currentTimeMillis();
+								solveTime = end - begin;
+								break;
+							}
+						} else {
+							//deductModel(sat);
+							//TODO MODIF
+							deductMultipleSolution(sat, csp, CC);
+							//displaySolution(csp, sat);
+							displayAllSolutions(sat, csp, shift);
+							System.out.println("nb_nodes : " + nbNodes);
+							long end = System.currentTimeMillis();
+							solveTime = end - begin;
+							break;
+						}
+					}
+				//}
+			} else if (x == null && y == null) {
+				
+				if (!backtrack(sat, CP, CC, shift)) {
+					if (solutions.size() == 0)
+						System.out.println("# UNSATISFIABLE");
+					else {
+						System.out.println("# " + solutions.size() + " solutions found");
+						displayAllSolutions(sat, csp, shift);
+					}
+					System.out.println("nb_nodes : " + nbNodes);
+					long end = System.currentTimeMillis();
+					solveTime = end - begin;
+					break;
 				}
 			}
 		}
@@ -1806,7 +1890,7 @@ public class Solver2 {
 		flagSupport = false;
 		flagDisplay = true;
 		
-		BinCSP csp = Generator.generateCompleteGraphColoration(3, 3);
+		BinCSP csp = Generator.generatePigeons(7, 6);
 		solve(csp);
 		
 		displayTime();

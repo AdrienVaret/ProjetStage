@@ -1890,73 +1890,10 @@ public class Solver {
 		flagSupport = false;
 		flagDisplay = true;
 		
-		long symDE, nsymDE, symSE, nsymSE;
-		int nodeSymDE, nodeNSymDE, nodeSymSE, nodeNSymSE;
-		
-		int nbVertex = 20;
-		int nbColors = 9;
-		double density = 0.9;
-		
-		//GenericCouple<BinCSP> couple = Generator.generateCompleteGraphDirectSupport(nbVertex, nbColors);
-		//GenericCouple<BinCSP> couple = Generator.generatePigeonDirectSupport(nbVertex, nbColors);
-		//GenericCouple<BinCSP> couple = Generator.generateRandomUncompleteGraph(nbVertex, nbColors, density);
-		GenericCouple<BinCSP> couple = Generator.generateExampleConflictSupport();
-		
-		System.out.println(nbVertex + " vertex, " + nbColors + " colors");
-		System.out.println("Direct Encoding");
-		
-		flagSymetries = false;
-		long begin = System.currentTimeMillis();
-		//solve(couple.getV1());
-		nodeNSymDE = nbNodes;
-		long end = System.currentTimeMillis();	
-		nsymDE = end - begin;
-		System.out.println("DE without symmetries : " + nsymDE + " ms, " + nodeNSymDE + " nodes");
-		
-		
-		clearVariables();
-		
-		flagSymetries = false;
-		begin = System.currentTimeMillis();
-		solve(couple.getV1());
-		nodeSymDE = nbNodes;
-		end = System.currentTimeMillis();
-		symDE = end - begin;
-		System.out.println("DE with symmetries : " + symDE + " ms, " + nodeSymDE + " nodes");
+		BinCSP csp = Generator.generatePigeons(7, 6);
+		solve(csp);
 		
 		displayTime();
-	/*	
-		System.out.println("Support encoding");
-		clearVariables();
-		flagSupport = true;
-		
-		flagSymetries = false;
-		begin = System.currentTimeMillis();
-		//solve(couple.getV2());
-		nodeNSymSE = nbNodes;
-		end = System.currentTimeMillis();
-		nsymSE = end - begin;
-		System.out.println("SE without symmetries : " + nsymSE + " ms, " + nodeNSymSE + "nodes");
-		
-		clearVariables();
-		
-		flagSymetries = true;
-		begin = System.currentTimeMillis();
-		solve(couple.getV2());
-		nodeSymSE = nbNodes;
-		end = System.currentTimeMillis();
-		symSE = end - begin;
-		System.out.println("SE with symmetries : " + symSE + " ms, " + nodeSymSE + "nodes");
-		
-		System.out.println(nbVertex + " " + nbColors + " " + density + " " + symDE + " " + nodeSymDE + " "
-				         + nsymDE + " " + nodeNSymDE + " " +  symSE + " " + nodeSymSE + " "
-				         + nsymSE + " " + nodeNSymSE);
-		
-		SAT satDirect = BinCSPConverter.directEncoding(couple.getV1());
-		SAT satSupport = BinCSPConverter.supportEncoding(couple.getV2());
-		
-		satDirect.exportToCNFFile("instances/rand_" + nbVertex + "_" + nbColors + "_" + density + "_direct.cnf");
-		satSupport.exportToCNFFile("instances/rand_" + nbVertex + "_" + nbColors + "_" + density + "_support.cnf");
-		*/
+	
 	}
 }
