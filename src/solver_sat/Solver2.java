@@ -1,8 +1,6 @@
 package solver_sat;
 
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,7 +8,6 @@ import bincsp.BinCSP;
 import bincsp.Variable;
 import conversion.BinCSPConverter;
 import generator.Generator;
-import generator.GeneratorBis;
 import sat.Clause;
 import sat.Litteral;
 import sat.SAT;
@@ -73,7 +70,7 @@ public class Solver2 {
 	 * X, Y sets used by the propagation
 	 * 
 	 */
-	static Litteral [] X, Y, LP, PA, toPropage, P, C;
+	static int [] X, Y, LP, PA, toPropage, P, C;
 	static int iX = 0, iY = 0, iLP = 0, iPA = 0, iTP = 0, iA = 0, iP = 0, iC = 0;
 	
 	static ArrayList<Integer> CP = new ArrayList<Integer>();
@@ -1858,7 +1855,7 @@ public class Solver2 {
 		flagSupport = false;
 		flagDisplay = true;
 		
-		BinCSP csp = Generator.generatePigeons(7, 6);
+		BinCSP csp = Generator.generatePigeons(10, 9);
 		solve(csp);
 		
 		displayTime();
