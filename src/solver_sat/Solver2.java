@@ -1,8 +1,6 @@
 package solver_sat;
 
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,7 +8,6 @@ import bincsp.BinCSP;
 import bincsp.Variable;
 import conversion.BinCSPConverter;
 import generator.Generator;
-import generator.GeneratorBis;
 import sat.Clause;
 import sat.Litteral;
 import sat.SAT;
@@ -686,11 +683,6 @@ public class Solver2 {
 			int toShift = 0;
 			for (int i = 1 ; i < occ[nl.getId()][0] + 1 ; i++) {
 				
-				//if (occ[nl.getId()][i] == -1) {
-				//	Utils.shiftToEnd(occ[nl.getId()], i);
-				//	occ[nl.getId()][0] --;
-				//}
-				
 				if (occ[nl.getId()][i] == -1 ) {
 					System.out.println("");
 				}
@@ -710,6 +702,7 @@ public class Solver2 {
 							//ICI : ajouter le littéral conflit
 							
 							Utils.shiftAll(occ[nl.getId()], toShift);
+							
 							toShift = 0;
 							
 							return false;
@@ -900,7 +893,6 @@ public class Solver2 {
 						}
 
 						occ[yid][index] = -1;
-						//toShift.add(index);
 						toShift ++;
 						
 						int lid = coupleAff.getValue2().getId();
@@ -912,19 +904,12 @@ public class Solver2 {
 						
 						Collections.swap(c.getLitterals(), 1, coupleAff.getValue1());
 						sat.setCouplePtr(c.getId(), c.get(0), c.get(1));
-						
-						//Utils.shiftAll(occ[nl.getId()], toShift);
-						//toShift = 0;
-					}
-				//shift ici
-					
+					}					
 				}
-				//Utils.shiftAll(occ[nl.getId()], toShift);
-				//toShift = 0;
 			}
 			Utils.shiftAll(occ[nl.getId()], toShift);
 			toShift = 0;
-			//occ[nl.getId()][0] -= toShift;
+
 			affect(sat, l);
 			indexLitteral ++;
 			l = L[indexLitteral];
@@ -1299,9 +1284,7 @@ public class Solver2 {
 	public static void initializeOcc(SAT sat) {
 		
 		for (int i = 0 ; i < sat.getNbVariables() * 2 ; i++) {
-			for (int j = 1 ; j < occ[i].length ; j++) {
-				occ[i][j] = -1;
-			}
+			occ[i][1] = -1;
 		}
 		
 		for (int i = 0 ; i < sat.getNbClauses() ; i++) {
@@ -1331,6 +1314,7 @@ public class Solver2 {
 				occ[x.getId()][(occ[x.getId()][0]) + 1] = -1;
 			}
 		}
+		System.out.println("");
 	}
 	
 	public static void displayAllSolutions(SAT sat, BinCSP csp, int [] shift) {
