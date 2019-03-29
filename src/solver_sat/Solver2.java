@@ -70,7 +70,7 @@ public class Solver2 {
 	 * X, Y sets used by the propagation
 	 * 
 	 */
-	static int [] X, Y, LP, PA, toPropage, P, C;
+	static Litteral [] X, Y, LP, PA, toPropage, P, C;
 	static int iX = 0, iY = 0, iLP = 0, iPA = 0, iTP = 0, iA = 0, iP = 0, iC = 0;
 	
 	static ArrayList<Integer> CP = new ArrayList<Integer>();
@@ -1855,7 +1855,7 @@ public class Solver2 {
 		flagSupport = false;
 		flagDisplay = true;
 		
-		BinCSP csp = Generator.generatePigeons(10, 9);
+		BinCSP csp = Generator.generatePigeons(6,5);
 		solve(csp);
 		
 		displayTime();
