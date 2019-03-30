@@ -771,23 +771,8 @@ public class Solver2 {
 		else if (!result1 && !result2) return 3;	
 		else return 4;
 	}
-
-	public static int findIndex(int [] shift, int id) {
-		
-		int idLitteral;
-		idLitteral = id >> 1;
-		
-		for (int i = 0 ; i < shift.length ; i++) {
-			if (i < shift.length - 1) {
-				if (shift[i] <= idLitteral && idLitteral < shift[i+1]) return i;
-			} else {
-				return i;
-			}
-		}
-		return -1;
-	}
 	
-	public static boolean backtrack(SAT sat, ArrayList<Integer> CP, ArrayList<Integer> CC, int [] shift) {
+	public static boolean backtrack(SAT sat, ArrayList<Integer> CP, ArrayList<Integer> CC) {
 
 		long begin = System.currentTimeMillis();
 		
@@ -814,10 +799,8 @@ public class Solver2 {
 			restore(sat, l);
 			P[iP-1] = null;
 			iP --;
-			//int index = findIndex(shift, l.getId());
 			if (l.getId() % 2 == 1)
 				domainsSizes[l.getIdVariable()] ++;
-				//domainsSizes[index] ++;
 		}
 		
 		for (int i = 0 ; i < nbChoices ; i++) {
@@ -879,11 +862,9 @@ public class Solver2 {
 					restore(sat, l);
 					P[iP-1] = null;
 					iP --;
-					//int index = findIndex(shift, l.getId());
 					
 					if (l.getId() % 2 == 1)
 						domainsSizes[l.getIdVariable()] ++;
-						//domainsSizes[index] ++;
 				}
 				
 				for (int i = 0 ; i < nbChoices ; i++) {
@@ -1037,7 +1018,7 @@ public class Solver2 {
 	
 	
 	
-	public static int breakSymmetries(BinCSP csp, SAT sat, int [] shift) {
+	public static int breakSymmetries(BinCSP csp, SAT sat) {
 		//Compute symetrics colors
 		ArrayList<Integer> symetricsColors = new ArrayList<Integer>();
 		for (int i = 0 ; i < state.length ; i++) {
@@ -1207,12 +1188,12 @@ public class Solver2 {
 				case HEURISTIC : 
 					idClause = domHeuristic();
 					//idClause = degHeuristic(csp);
-					/**/
+					
 					if (flagSymetries && !flagNoMoreSymmetries) {
-						resultSymmetries = breakSymmetries(csp, sat, shift);
+						resultSymmetries = breakSymmetries(csp, sat);
 						if (resultSymmetries == -1) break;
 					}
-					/**/
+					
 					couple = selectCouple(sat, idClause);
 					break;
 					
@@ -1278,7 +1259,7 @@ public class Solver2 {
 					Utils.clearArray(L1);
 					Utils.clearArray(L2);
 					CP.add(0);
-					if (!backtrack(sat, CP, CC, shift)) {
+					if (!backtrack(sat, CP, CC)) {
 						if (solutions.size() == 0)
 							System.out.println("# UNSATISFIABLE");
 						else {
@@ -1310,10 +1291,8 @@ public class Solver2 {
 										
 					for (Litteral l : PA) {
 						if (l == null) break;
-						//int index = findIndex(shift, l.getId());
 						if (l.getId() % 2 == 1)
 							domainsSizes[l.getIdVariable()] --;
-							//domainsSizes[index] --;
 					}
 								
 					clearLP();
@@ -1325,7 +1304,7 @@ public class Solver2 {
 					if (modelExists(csp,sat)) {
 						if (flagAllSolutions) {
 							deductMultipleSolution(sat, csp, CC);
-							if (!backtrack(sat, CP, CC, shift)) {
+							if (!backtrack(sat, CP, CC)) {
 								if (solutions.size() == 0)
 									System.out.println("# UNSATISFIABLE");
 								else {
@@ -1380,7 +1359,7 @@ public class Solver2 {
 				if (modelExists(csp,sat)) {
 					if (flagAllSolutions) {
 						deductMultipleSolution(sat, csp, CC);
-						if (!backtrack(sat, CP, CC, shift)) {
+						if (!backtrack(sat, CP, CC)) {
 							if (solutions.size() == 0)
 								System.out.println("# UNSATISFIABLE");
 							else {
@@ -1407,7 +1386,7 @@ public class Solver2 {
 				}
 			} else if (x == null && y == null) {
 				
-				if (!backtrack(sat, CP, CC, shift)) {
+				if (!backtrack(sat, CP, CC)) {
 					if (solutions.size() == 0)
 						System.out.println("# UNSATISFIABLE");
 					else {
