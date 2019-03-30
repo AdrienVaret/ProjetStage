@@ -24,6 +24,9 @@ public class Solver2 {
 		HEURISTIC, SAME_VARIABLE
 	}
 	
+	static BinCSP csp;
+	static SAT sat;
+	
 	/*
 	 * Flags
 	 */
@@ -1104,7 +1107,7 @@ public class Solver2 {
 	 * Solve the csp
 	 * @param csp
 	 */
-	public static void solve(BinCSP csp) {
+	public static void solve() {
 
 		long begin = System.currentTimeMillis();
 		
@@ -1407,8 +1410,8 @@ public class Solver2 {
 		flagSupport = false;
 		flagDisplay = true;
 		
-		BinCSP csp = Generator.generatePigeons(9,8);
-		solve(csp);
+		csp = Generator.generatePigeons(9,8);
+		solve();
 		
 		displayTime();
 	}
