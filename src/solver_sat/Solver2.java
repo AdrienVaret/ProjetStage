@@ -526,7 +526,7 @@ public class Solver2 {
 	}
 	
 	/**
-	 * Made unitary propagation of a list of litteral
+	 * BCP
 	 * @param sat
 	 * @param L
 	 * @param action (1 = intersection), set (1 = X, 2 = Y)
@@ -536,7 +536,6 @@ public class Solver2 {
 		
 		long begin = System.currentTimeMillis();
 		int [] propagateds = new int [sat.getNbVariables() * 2];
-		int [] statesClauses = new int [sat.getNbClauses()];
 		int idLitteral = 0;
 		
 		
@@ -577,9 +576,8 @@ public class Solver2 {
 						}
 						
 						if (isAffected(sat, y)) {
-							if (isSat(sat, y))
-								statesClauses[c.getId()] = 1;
-							else {
+							
+							if (!isSat(sat, y)) {
 								result.setState(false);
 								
 								Utils.shiftAll(occ[nl.getId()], toShift);
@@ -608,9 +606,7 @@ public class Solver2 {
 						}
 					} else if (y != null && y.equals(nl)) {
 						if (isAffected(sat, x)) {
-							if (isSat(sat, x))
-								statesClauses[c.getId()] = 1;
-							else {
+							if (!isSat(sat, x)) {
 								result.setState(false);		
 								Utils.shiftAll(occ[nl.getId()], toShift);
 								toShift = 0;
@@ -712,7 +708,6 @@ public class Solver2 {
 	 */
 	public static void restoreAll(SAT sat, ArrayList<Litteral> L) {
 		long begin = System.currentTimeMillis();
-		
 		for (Litteral l : L) {
 			restore(sat, l);
 		}
@@ -734,12 +729,6 @@ public class Solver2 {
 		restoreTime += time;
 	}
 	
-	/*
-	 * 1 : r1 & !r2
-	 * 2 : !r1 & r2
-	 * 3 : !r1 @ !r2
-	 * 4 : r1 & r2
-	 */
 	public static int propagationAll(SAT sat, Litteral [] L1, Litteral [] L2) {
 		boolean result1 = propagation(sat, L1, true);
 		restoreAll(sat, L1);
@@ -860,15 +849,12 @@ public class Solver2 {
 				}
 				
 				r = propagation(sat, toPropage, false);
-	
-				
+					
 				for (int i = 0 ; i < toPropage.length ; i++) {
 						if (toPropage[i] == null) break;
 						explicitsPropagations[idClause][iEP[idClause]] = toPropage[i];
 						iEP[idClause] ++;
 				}
-				
-
 				clearTP();
 			}
 			
@@ -1014,10 +1000,7 @@ public class Solver2 {
 		boolean r = propagation(sat, L1, false);
 		V--;
 		
-		if (!r) {
-			System.out.println("UNSAT");
-			return -1;
-		}
+		if (!r) return -1;
 		
 		int size = 0;
 		for (int i = 0 ; i < L1.length ; i++) {
@@ -1047,19 +1030,12 @@ public class Solver2 {
 		L2 = new Litteral[sat.getNbVariables() * 2];
 		P = new Litteral[sat.getNbVariables() * 2];
 		C = new Litteral[sat.getNbVariables()];
-		
-		
 		toPropage = new Litteral [sat.getNbVariables() * 2];
 		affectations = new int [csp.getNbVariables()];
-		
 		explicitsPropagations = new Litteral [csp.getNbVariables()][sat.getNbVariables() * 2];
-		
 		iEP = new int [csp.getNbVariables()];
-		
 		result = new ResultPropagation(sat.getNbVariables() * 2);
-		
 		occ = new int [sat.getNbVariables() * 2][sat.getMaxOccurences() + 2];
-		
 	}
 	
 	public static ArrayList<Cause> getCauses(Litteral l, ArrayList<ArrayList<Cause>> graph, int [] occurences){
@@ -1422,7 +1398,7 @@ public class Solver2 {
 	}
 	
 	public static void main(String [] args) {
-		flagAllSolutions = true;
+		flagAllSolutions = false;
 		flagDomHeuristic = false;
 		flagDegHeuristic = true;
 		flagSupport = false;
