@@ -746,7 +746,7 @@ public class Solver2 {
 		restoreTime += time;
 	}
 	
-	public static int propagationAll(SAT sat, Litteral [] L1, Litteral [] L2) {
+	public static int propagationAll(SAT sat) {
 		boolean result1 = propagation(sat, L1, true);
 		restoreAll(sat, L1);
 		boolean result2 = propagation(sat, L2, true);
@@ -1196,11 +1196,10 @@ public class Solver2 {
 				
 				L1[0] = x;
 				L1[1] = ny;
-				Litteral [] L2 = new Litteral [sat.getNbVariables() * 2];
 				L2[0] = nx;
 				L2[1] = y;
 				
-				int r = propagationAll(sat, L1, L2);
+				int r = propagationAll(sat);
 				
 				if (r == 1) {
 					PA = L1;
@@ -1421,7 +1420,7 @@ public class Solver2 {
 		flagSupport = false;
 		flagDisplay = true;
 		
-		BinCSP csp = Generator.generatePigeons(8,7);
+		BinCSP csp = Generator.generatePigeons(9,8);
 		solve(csp);
 		
 		displayTime();
