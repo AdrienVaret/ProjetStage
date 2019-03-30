@@ -616,21 +616,6 @@ public class Solver2 {
 			if (l == null) break;
 			idLitteral ++;
 			propagateds[l.getId()] = 1;
-			
-			/*
-			if (set == 1) {
-				if (sat.getLitteralsStates()[getIndex(l.getId())] == 0) {
-					X[iX] = l;
-					iX ++;
-				}
-					
-			} else if (set == 2) {
-				if (sat.getLitteralsStates()[getIndex(l.getId())] == 0) {
-					Y[iY] = l;
-					iY ++;
-				}
-			}
-			*/
 		}
 		
 		int indexLitteral = 0;
@@ -638,7 +623,6 @@ public class Solver2 {
 		
 		while (l != null) {
 			nl = negation(sat, l);
-			//ArrayList<Integer> toShift = new ArrayList<Integer>();
 			int toShift = 0;
 			for (int i = 1 ; i < occ[nl.getId()][0] + 1 ; i++) {
 								
@@ -657,9 +641,7 @@ public class Solver2 {
 					if (x != null && x.equals(nl)) { //ajout de x != null
 						
 						if (y == null) {
-							result.setState(false);
-							//ICI : ajouter le littéral conflit
-							
+							result.setState(false);							
 							Utils.shiftAll(occ[nl.getId()], toShift);
 							toShift = 0;
 							
@@ -686,19 +668,10 @@ public class Solver2 {
 								L[idLitteral] = y;
 								idLitteral ++;	
 								
-								result.incr(y.getId());
-/*								
-								if (set == 1) {
-									X[iX] = y;
-									iX ++;
-								} else if (set == 2) {
-									Y[iY] = y;
-									iY ++;
-								}
-*/								
+								if (intersection)
+									result.incr(y.getId());							
 								
-								
-								if (/*action == 2*/ intersection && result.get(y.getId()) == 2) {
+								if (intersection && result.get(y.getId()) == 2) {
 									LP[iLP] = y;
 									iLP ++;
 								}						
@@ -724,19 +697,10 @@ public class Solver2 {
 								L[idLitteral] = x;
 								idLitteral ++;
 								
-								result.incr(x.getId());
+								if (intersection)
+									result.incr(x.getId());
 								
-								/*
-								if (set == 1) {
-									X[iX] = x;
-									iX ++;
-								} else if (set == 2) {
-									Y[iY] = x;
-									iY ++;
-								}
-								*/
-								
-								if (/*action == 2*/ intersection && result.get(x.getId()) == 2) {
+								if (intersection && result.get(x.getId()) == 2) {
 									LP[iLP] = x;
 									iLP ++;
 								}		
@@ -783,7 +747,6 @@ public class Solver2 {
 						
 						Collections.swap(c.getLitterals(), 1, coupleAff.getValue1());
 						sat.setCouplePtr(c.getId(), c.get(0), c.get(1));
-
 					}
 				
 				}
@@ -851,50 +814,17 @@ public class Solver2 {
 	 * 4 : r1 & r2
 	 */
 	public static int propagationAll(SAT sat, Litteral [] L1, Litteral [] L2, int [] shift) {
-		//boolean result1 = propagation(sat, L1, 2, 1, true);
 		boolean result1 = propagation(sat, L1, true);
-		//restoreAll(sat, X, shift);
 		restoreAll(sat, L1, shift);
-		//boolean result2 = propagation(sat, L2, 2, 2, true);
 		boolean result2 = propagation(sat, L2, true);
-		//restoreAll(sat, Y, shift);
 		restoreAll(sat, L2, shift);
 		
 		result.clear();
 		
-		if (result1 && !result2) {
-			//PA = X.clone();
-			//iPA = X.length;
-		
-			//clearArray(L1);
-			//clearArray(L2);
-			return 1;
-		}
-		
-		else if (!result1 && result2) {
-			//PA = Y.clone();
-			//iPA = Y.length;			
-			//clearArray(L1);
-			//clearArray(L2);
-			return 2;
-		}
-		
-		else if (!result1 && !result2) {
-			//PA = null;
-			//iPA = 0;	
-			//clearArray(L1);
-			//clearArray(L2);
-			return 3;
-		}
-		
-		else {
-			//PA = LP.clone();
-			//iPA = LP.length;
-			//clearArray(L1);
-			//clearArray(L2);
-			return 4;
-		}
-		
+		if (result1 && !result2) return 1;	
+		else if (!result1 && result2) return 2;		
+		else if (!result1 && !result2) return 3;	
+		else return 4;
 	}
 
 	public static int findIndex(int [] shift, int id) {
@@ -958,16 +888,6 @@ public class Solver2 {
 		}
 		
 		boolean r = propagation(sat, toPropage, false);
-		//clearTP();
-		//result.clear();
-		
-		//for (int i = 0 ; i < iX ; i++) {
-		//	explicitsPropagations[idClause][iEP[idClause]] = X[i];
-		//	iEP[idClause] ++;
-		//}
-		
-		//clearX();
-	
 		
 		for (int i = 0 ; i < toPropage.length ; i++) {
 			if (toPropage[i] == null) break;
@@ -976,7 +896,7 @@ public class Solver2 {
 		}
 		
 		clearTP();
-		result.clear();
+		//result.clear();
 		
 		
 		if (!r) {
@@ -1036,23 +956,15 @@ public class Solver2 {
 				}
 				
 				r = propagation(sat, toPropage, false);
-				//clearTP();
-				//result.clear();
-				
-				//for (int i = 0 ; i < iX ; i++) {
-				//	explicitsPropagations[idClause][iEP[idClause]] = X[i];
-				//	iEP[idClause] ++;
-				//}
-				
+	
 				for (int i = 0 ; i < toPropage.length ; i++) {
 					if (toPropage[i] == null) break;
 					explicitsPropagations[idClause][iEP[idClause]] = toPropage[i];
 					iEP[idClause] ++;
 				}
-				
-				//clearX();
+
 				clearTP();
-				result.clear();
+				//result.clear();
 			}
 			
 			nodeState = true;
@@ -1069,12 +981,6 @@ public class Solver2 {
 	}
 	
 	public static boolean modelExists(BinCSP csp, SAT sat) {
-		//ATTENTION MODIFICATION
-		/*for (int i = 0 ; i < sat.getNbVariables() ; i++) {
-			if (sat.getLitteralState(i) == 0 && sat.getChoice(i) == 0)
-				return false;
-		}
-		return true;*/
 		for (int i = 0 ; i < variablesStates.length ; i++) {
 			if (variablesStates[i] == 0) return false;
 		}
@@ -1440,7 +1346,7 @@ public class Solver2 {
 				
 				if (PA == null) {
 					clearLP();
-					clearPA();
+					//clearPA();
 					//clearL1L2 quand global
 					CP.add(0);
 					if (!backtrack(sat, CP, CC, shift)) {
@@ -1481,7 +1387,7 @@ public class Solver2 {
 					}
 								
 					clearLP();
-					clearPA();
+					//clearPA();
 					
 					sat.setNbLitteralsSat(sat.getNbLitteralsSat() + size);
 					
