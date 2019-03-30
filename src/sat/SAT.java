@@ -15,7 +15,6 @@ public class SAT {
 	private ArrayList<GenericCouple<Litteral>> tabPtrs;
 	
 	private int[] litteralsStates;
-	private int[] choices;
 	
 	private int nbLitteralsSat;
 	private int maxOccurences;
@@ -26,7 +25,6 @@ public class SAT {
 		this.clauses     = clauses;
 		this.litterals   = litterals;
 		litteralsStates  = new int [nbVariables];
-		choices          = new int [nbVariables];
 		nbLitteralsSat   = 0;
 		this.maxOccurences = maxOccurences;
 		initializePtrs();
@@ -83,14 +81,6 @@ public class SAT {
 	
 	public void setCouplePtr(int index, Litteral x, Litteral y) {
 		tabPtrs.set(index, new GenericCouple<Litteral>(x, y));
-	}
-	
-	public int getChoice(int index) {
-		return choices[index];
-	}
-	
-	public int [] getChoises() {
-		return choices;
 	}
 	
 	public int getNbLitteralsSat() {

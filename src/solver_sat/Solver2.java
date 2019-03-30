@@ -793,8 +793,6 @@ public class Solver2 {
 		
 		for (int i = 0 ; i < nbChoices ; i++) {
 			Litteral l = C[iC-1];
-			int lid = getIndex(l.getId());
-			sat.getChoises()[lid] = 0;
 			toPropage[iTP] = negation(sat, l);
 			iTP ++;
 			C[iC-1] = null;
@@ -857,8 +855,6 @@ public class Solver2 {
 				
 				for (int i = 0 ; i < nbChoices ; i++) {
 					Litteral l = C[iC-1];
-					int lid = getIndex(l.getId());
-					sat.getChoises()[lid] = 0;
 					toPropage[iTP] = negation(sat, l);
 					iTP ++;
 					C[iC-1] = null;
@@ -1188,12 +1184,6 @@ public class Solver2 {
 				iC ++;
 				CC.add(2);
 				
-				int xid = getIndex(x.getId());
-				int yid = getIndex(y.getId());
-				
-				sat.getChoises()[xid] = 1;
-				sat.getChoises()[yid] = 1;
-				
 				L1[0] = x;
 				L1[1] = ny;
 				L2[0] = nx;
@@ -1301,9 +1291,6 @@ public class Solver2 {
 				C[iC] = x;
 				iC ++;
 				CC.add(1);
-				
-				int xid = getIndex(x.getId());
-				sat.getChoises()[xid] = 1;
 						
 				action = Action.HEURISTIC;
 								

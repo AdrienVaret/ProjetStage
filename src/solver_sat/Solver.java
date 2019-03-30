@@ -1158,7 +1158,7 @@ public class Solver {
 		for (int i = 0 ; i < nbChoices ; i++) {
 			Litteral l = C[iC-1];
 			int lid = getIndex(l.getId());
-			sat.getChoises()[lid] = 0;
+			//sat.getChoises()[lid] = 0;
 			toPropage[iTP] = negation(sat, l);
 			iTP ++;
 			C[iC-1] = null;
@@ -1224,8 +1224,8 @@ public class Solver {
 				
 				for (int i = 0 ; i < nbChoices ; i++) {
 					Litteral l = C[iC-1];
-					int lid = getIndex(l.getId());
-					sat.getChoises()[lid] = 0;
+					//int lid = getIndex(l.getId());
+					//sat.getChoises()[lid] = 0;
 					toPropage[iTP] = negation(sat, l);
 					iTP ++;
 					C[iC-1] = null;
@@ -1613,8 +1613,8 @@ public class Solver {
 				int xid = getIndex(x.getId());
 				int yid = getIndex(y.getId());
 				
-				sat.getChoises()[xid] = 1;
-				sat.getChoises()[yid] = 1;
+				//sat.getChoises()[xid] = 1;
+				//sat.getChoises()[yid] = 1;
 				
 				Litteral [] L1 = new Litteral [sat.getNbVariables() * 2];
 				L1[0] = x;
@@ -1719,7 +1719,7 @@ public class Solver {
 				CC.add(1);
 				
 				int xid = getIndex(x.getId());
-				sat.getChoises()[xid] = 1;
+				//sat.getChoises()[xid] = 1;
 			
 				Litteral [] L1 = new Litteral[sat.getNbVariables() * 2];
 				L1[0] = x;
