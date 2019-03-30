@@ -1890,7 +1890,7 @@ public class Solver {
 		flagSupport = false;
 		flagDisplay = true;
 		
-		BinCSP csp = Generator.generatePigeons(7, 6);
+		BinCSP csp = Generator.generatePigeons(5, 4);
 		solve(csp);
 		
 		displayTime();
