@@ -1,7 +1,6 @@
 package solver_sat;
 
 import java.io.BufferedWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import bincsp.BinCSP;
@@ -143,18 +142,7 @@ public class Solver2 {
 		return x >> 1;
 	}
 	
-	/**
-	 * Find unaffected Litteral
-	 * @param sat
-	 * @return litteral's index
-	 */
-	public static int findUnafLitteral(SAT sat) {
-		for (int i = 0 ; i < sat.getNbVariables() ; i++) {
-			if (sat.getLitteralState(i) == 0) return i;
-		}
-		return -1;
-	}
-	
+
 	static Litteral [][] ep;
 	static int [] iep;
 	static int idC, idCC;
@@ -165,23 +153,23 @@ public class Solver2 {
 	static int ic;
 	static ArrayList<Litteral []> solutions = new ArrayList<Litteral []>();
 	
-	public static int backtrackMultipleSolution(SAT sat, BinCSP csp) {
+	public static int backtrackMultipleSolution() {
 	
 		int n = cp.get(cp.size()-1);
 		cp.remove(cp.size()-1);
 		 
 		for (int i = 0 ; i < n ; i++) {
 			Litteral l = p[ip-1];
-			restore(sat, l);
+			restore(l);
 			p[ip-1] = null;
 			ip --;
 		}
 		
-		Litteral l = negation(sat, c[ic-1]);
+		Litteral l = negation(c[ic-1]);
 		Litteral [] L = new Litteral [sat.getNbVariables() * 2]; 
 		L[0] = l;
 		
-		boolean r = propagation(sat, L, false);
+		boolean r = propagation(L, false);
 		
 		c[ic - 1] = null;
 		ic --;
@@ -199,7 +187,7 @@ public class Solver2 {
 				int max = iep[idCC];
 				for (int i = 0 ; i < max ; i++) {
 					Litteral toRestore = ep[idCC][i];
-					restore (sat, toRestore);
+					restore (toRestore);
 				}
 								
 				iep[idCC] = 0;
@@ -213,17 +201,17 @@ public class Solver2 {
 			
 			for (int i = 0 ; i < n ; i++) {
 				l = p[ip-1];
-				restore(sat, l);
+				restore(l);
 				p[ip-1] = null;
 				ip --;
 			}
 			
 			if (ic > 0) {
-				l = negation(sat, c[ic-1]);
+				l = negation(c[ic-1]);
 				L = new Litteral [sat.getNbVariables() * 2]; 
 				L[0] = l;
 			
-				r = propagation(sat, L, false);
+				r = propagation(L, false);
 			
 				c[ic - 1] = null;
 				ic --;
@@ -239,7 +227,7 @@ public class Solver2 {
 		return 1;
 	}
 	
-	public static void deductMultipleSolution(SAT sat, BinCSP csp, ArrayList<Integer> CC) {
+	public static void deductMultipleSolution(ArrayList<Integer> CC) {
 		
 		long begin = System.currentTimeMillis();
 				
@@ -289,7 +277,7 @@ public class Solver2 {
 				c[ic] = l;
 				ic ++;
 				L[0] = l;
-				boolean r = propagation(sat, L, false);
+				boolean r = propagation(L, false);
 
 				int size = 0;
 				for (int i = 0 ; i < L.length ; i++) {
@@ -299,9 +287,6 @@ public class Solver2 {
 					size ++;
 					L[i] = null;
 				}
-				
-				//for (int i = 0 ; i < L.length ; i++)
-				//	L[i] = null;
 				
 				cp.add(size);
 				
@@ -322,14 +307,14 @@ public class Solver2 {
 					}
 					
 					if (flagAllSolutions) {
-						if (backtrackMultipleSolution(sat, csp) == -1) {
+						if (backtrackMultipleSolution() == -1) {
 							break;
 						}
 					} else {
 						break;
 					}
 				} else if (r == false) {
-					if (backtrackMultipleSolution(sat, csp) == -1) {
+					if (backtrackMultipleSolution() == -1) {
 						break;
 					}
 				}
@@ -340,7 +325,7 @@ public class Solver2 {
 				
 			} else {
 				cp.add(0);
-				if (backtrackMultipleSolution(sat, csp) == -1) {
+				if (backtrackMultipleSolution() == -1) {
 					break;
 				}
 			}
@@ -349,7 +334,7 @@ public class Solver2 {
 		int max = iep[0];
 		for (int i = 0 ; i < max ; i++) {
 			Litteral toRestore = ep[0][i];
-			restore(sat, toRestore);
+			restore(toRestore);
 		}
 		
 		long end = System.currentTimeMillis();
@@ -362,7 +347,7 @@ public class Solver2 {
 	 * @param litteral
 	 * @return litteral
 	 */
-	public static Litteral negation(SAT sat, Litteral litteral) {
+	public static Litteral negation(Litteral litteral) {
 		if (litteral.getId() % 2 == 0)
 			return sat.getLitteral(litteral.getId() + 1);
 		else
@@ -375,7 +360,7 @@ public class Solver2 {
 	 * @param l
 	 * @return boolean
 	 */
-	public static boolean isAffected(SAT sat, Litteral l) {
+	public static boolean isAffected(Litteral l) {
 		return sat.getLitteralState(getIndex(l.getId())) != 0;
 	}
 	
@@ -385,7 +370,7 @@ public class Solver2 {
 	 * @param index
 	 * @return
 	 */
-	public static GenericCouple<Litteral> selectCouple(SAT sat, int index){
+	public static GenericCouple<Litteral> selectCouple(int index){
 		
 		long begin = System.currentTimeMillis();
 		
@@ -465,7 +450,7 @@ public class Solver2 {
 		return index;
 	}
 	
-	public static int degHeuristic(BinCSP csp) {
+	public static int degHeuristic() {
 		int maxDegree = -1;
 		int index = -1;
 		for (int i = 0 ; i < domainsSizes.length ; i++) {
@@ -485,7 +470,7 @@ public class Solver2 {
 	 * @param l
 	 * @return boolean
 	 */
-	public static boolean isSat(SAT sat, Litteral l) {	
+	public static boolean isSat(Litteral l) {	
 		if ((l.getId() % 2 == 0 && sat.getLitteralState(getIndex(l.getId())) == 1) ||
 			(l.getId() % 2 == 1 && sat.getLitteralState(getIndex(l.getId())) == -1)) {
 				return true;
@@ -511,14 +496,14 @@ public class Solver2 {
 	 * @param clause
 	 * @return GenericCouple<Integer, Litteral>
 	 */
-	public static GenericCouple2<Integer, Litteral> findUnafectedOrSatLitteral(SAT sat, Clause clause) {
+	public static GenericCouple2<Integer, Litteral> findUnafectedOrSatLitteral(Clause clause) {
 		long begin = System.currentTimeMillis();
 		
 		for (int i = 2 ; i < clause.getLitterals().size() ; i++) {
 			Litteral l = clause.get(i);
 			int id = getIndex(l.getId());
 			
-			if (((sat.getLitteralState(id) == 0) || (isSat(sat, l)))){
+			if (((sat.getLitteralState(id) == 0) || (isSat(l)))){
 				return new GenericCouple2<Integer, Litteral>(i,l);
 			}
 		}
@@ -536,7 +521,7 @@ public class Solver2 {
 	 * @param action (1 = intersection), set (1 = X, 2 = Y)
 	 * @return
 	 */
-	public static boolean propagation(SAT sat, Litteral [] L, boolean intersection) {
+	public static boolean propagation(Litteral [] L, boolean intersection) {
 		
 		long begin = System.currentTimeMillis();
 		int idLitteral = 0;
@@ -551,14 +536,14 @@ public class Solver2 {
 		Litteral l = L[indexLitteral], nl;
 		
 		while (l != null) {
-			nl = negation(sat, l);
+			nl = negation(l);
 			int toShift = 0;
 			for (int i = 1 ; i < occ[nl.getId()][0] + 1 ; i++) {
 				Clause c = sat.getClauses().get(occ[nl.getId()][i]);
 				Litteral x = sat.getCouplePtr(c.getId()).getV1();
 				Litteral y = sat.getCouplePtr(c.getId()).getV2();
 				
-				GenericCouple2<Integer, Litteral> coupleAff = findUnafectedOrSatLitteral(sat, c);
+				GenericCouple2<Integer, Litteral> coupleAff = findUnafectedOrSatLitteral(c);
 				Litteral affectable = coupleAff.getValue2();
 				
 				if (affectable == null) {
@@ -578,8 +563,8 @@ public class Solver2 {
 							return false;
 						}
 						
-						if (isAffected(sat, y)) {
-							if (!isSat(sat, y)) {
+						if (isAffected(y)) {
+							if (!isSat(y)) {
 								result.setState(false);
 								
 								Utils.shiftAll(occ[nl.getId()], toShift);
@@ -613,8 +598,8 @@ public class Solver2 {
 							}
 						}
 					} else if (y != null && y.equals(nl)) {
-						if (isAffected(sat, x)) {
-							if (!isSat(sat, x)) {
+						if (isAffected(x)) {
+							if (!isSat(x)) {
 								result.setState(false);		
 								Utils.shiftAll(occ[nl.getId()], toShift);
 								toShift = 0;
@@ -712,7 +697,7 @@ public class Solver2 {
 	 * @param sat
 	 * @param l
 	 */
-	public static void restore(SAT sat, Litteral l) {
+	public static void restore(Litteral l) {
 		long begin = System.currentTimeMillis();
 		int id = getIndex(l.getId());
 		sat.getLitteralsStates()[id] = 0;
@@ -726,22 +711,22 @@ public class Solver2 {
 	 * @param sat
 	 * @param L
 	 */
-	public static void restoreAll(SAT sat, ArrayList<Litteral> L) {
+	public static void restoreAll(ArrayList<Litteral> L) {
 		long begin = System.currentTimeMillis();
 		for (Litteral l : L) {
-			restore(sat, l);
+			restore(l);
 		}
 		long end = System.currentTimeMillis();
 		long time = end - begin;
 		restoreTime += time;
 	}
 	
-	public static void restoreAll(SAT sat, Litteral [] L) {
+	public static void restoreAll(Litteral [] L) {
 		long begin = System.currentTimeMillis();
 		
 		for (Litteral l : L) {
 			if (l == null) break;
-			restore(sat, l);
+			restore(l);
 		}
 		
 		long end = System.currentTimeMillis();
@@ -749,11 +734,11 @@ public class Solver2 {
 		restoreTime += time;
 	}
 	
-	public static int propagationAll(SAT sat) {
-		boolean result1 = propagation(sat, L1, true);
-		restoreAll(sat, L1);
-		boolean result2 = propagation(sat, L2, true);
-		restoreAll(sat, L2);
+	public static int propagationAll() {
+		boolean result1 = propagation(L1, true);
+		restoreAll(L1);
+		boolean result2 = propagation(L2, true);
+		restoreAll(L2);
 		
 		result.clear();
 		
@@ -763,7 +748,7 @@ public class Solver2 {
 		else return 4;
 	}
 	
-	public static boolean backtrack(SAT sat, ArrayList<Integer> CP, ArrayList<Integer> CC) {
+	public static boolean backtrack(ArrayList<Integer> CP, ArrayList<Integer> CC) {
 
 		long begin = System.currentTimeMillis();
 		
@@ -787,7 +772,7 @@ public class Solver2 {
 		
 		for (int i = 0 ; i < nbLitterals ; i++) {
 			Litteral l = P[iP-1];
-			restore(sat, l);
+			restore(l);
 			P[iP-1] = null;
 			iP --;
 			if (l.getId() % 2 == 1)
@@ -796,13 +781,13 @@ public class Solver2 {
 		
 		for (int i = 0 ; i < nbChoices ; i++) {
 			Litteral l = C[iC-1];
-			toPropage[iTP] = negation(sat, l);
+			toPropage[iTP] = negation(l);
 			iTP ++;
 			C[iC-1] = null;
 			iC --;
 		}
 		
-		boolean r = propagation(sat, toPropage, false);
+		boolean r = propagation(toPropage, false);
 				
 		for (int i = 0 ; i < toPropage.length ; i++) {
 			if (toPropage[i] == null) break;
@@ -814,7 +799,7 @@ public class Solver2 {
 		
 		if (!r) {
 			while (!r) {
-				restoreAll(sat, explicitsPropagations[idClause]);
+				restoreAll(explicitsPropagations[idClause]);
 				
 				affectations[iA-1] = -1;
 				iA --;
@@ -848,7 +833,7 @@ public class Solver2 {
 				
 				for (int i = 0 ; i < nbLitterals ; i++) {
 					Litteral l = P[iP-1];
-					restore(sat, l);
+					restore(l);
 					P[iP-1] = null;
 					iP --;
 					
@@ -858,13 +843,13 @@ public class Solver2 {
 				
 				for (int i = 0 ; i < nbChoices ; i++) {
 					Litteral l = C[iC-1];
-					toPropage[iTP] = negation(sat, l);
+					toPropage[iTP] = negation(l);
 					iTP ++;
 					C[iC-1] = null;
 					iC --;
 				}
 				
-				r = propagation(sat, toPropage, false);
+				r = propagation(toPropage, false);
 					
 				for (int i = 0 ; i < toPropage.length ; i++) {
 						if (toPropage[i] == null) break;
@@ -887,40 +872,18 @@ public class Solver2 {
 		}	
 	}
 	
-	public static boolean modelExists(BinCSP csp, SAT sat) {
+	public static boolean modelExists() {
 		for (int i = 0 ; i < variablesStates.length ; i++) {
 			if (variablesStates[i] == 0) return false;
 		}
 		return true;
 	}
 	
-	public static void displayPC(ArrayList<Integer> CC) {
-		int index = 0;
-		for (Integer i : CC) {
-			if (i == 2) {
-				try {
-					w.write(C[index] + " != " + C[index+1] + "\n");
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				index += 2;
-			} 
-			if (i == 1) {
-				try {
-					w.write(C[index] + " = 1" + "\n");
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				index += 1;
-			}
-		}
-	}
-	
 	/**
 	 * Initialize occurences matrix
 	 * @param sat
 	 */
-	public static void initializeOcc(SAT sat) {
+	public static void initializeOcc() {
 		
 		for (int i = 0 ; i < sat.getNbVariables() * 2 ; i++) {
 			for (int j = 1 ; j < occ[i].length ; j++) {
@@ -974,7 +937,7 @@ public class Solver2 {
 		}
 	}
 	
-	public static int findColor(int id, BinCSP csp) {
+	public static int findColor(int id) {
 		int d = csp.getVariables().get(0).getDomain().size();
 		for (int i = 0 ; i < csp.getNbVariables() ; i++) {
 			int x = ((i+1)*(2*d))-1;
@@ -988,7 +951,7 @@ public class Solver2 {
 	
 	
 	
-	public static int breakSymmetries(BinCSP csp, SAT sat) {
+	public static int breakSymmetries() {
 		//Compute symetrics colors
 		ArrayList<Integer> symetricsColors = new ArrayList<Integer>();
 		for (int i = 0 ; i < state.length ; i++) {
@@ -1008,12 +971,12 @@ public class Solver2 {
 		for (int i = 1 ; i < symetricsColors.size() ; i++) {
 			int color = symetricsColors.get(i);
 			int indexX = (idClause * (2 * d)) + (2 * color); 
-			Litteral x = negation(sat, sat.getLitterals().get(indexX));
+			Litteral x = negation(sat.getLitterals().get(indexX));
 			L1[iL1] = x;
 			iL1 ++;
 		}
 		
-		boolean r = propagation(sat, L1, false);
+		boolean r = propagation(L1, false);
 		V--;
 		
 		if (!r) return -1;
@@ -1024,7 +987,7 @@ public class Solver2 {
 			Litteral x = L1[i];
 			int indexX = x.getId();
 			if (indexX % 2 != 0) { //if a negation is propagated
-					int color = findColor(indexX - 1, csp);
+					int color = findColor(indexX - 1);
 					state[color] --;
 			}
 			SP[iSP] = x;
@@ -1040,7 +1003,7 @@ public class Solver2 {
 		return 1;
 	}
 	
-	public static void initialize(SAT sat, BinCSP csp) {
+	public static void initialize() {
 		LP = new Litteral[sat.getNbVariables() * 2];
 		L1 = new Litteral[sat.getNbVariables() * 2];
 		L2 = new Litteral[sat.getNbVariables() * 2];
@@ -1090,7 +1053,7 @@ public class Solver2 {
 		return causes;
 	}
 	
-	public static void initializeSymmetriesVariables(BinCSP csp, SAT sat) {
+	public static void initializeSymmetriesVariables() {
 		V = csp.getNbVariables();
 		state = new int[csp.getVariables().get(0).getDomain().size()];
 		
@@ -1111,15 +1074,13 @@ public class Solver2 {
 
 		long begin = System.currentTimeMillis();
 		
-		SAT sat;
-		
 		if (flagSupport)
 			sat = BinCSPConverter.supportEncoding(csp);
 		else 
 			sat = BinCSPConverter.directEncoding(csp);
 			
-		initialize(sat, csp);
-		initializeOcc(sat);
+		initialize();
+		initializeOcc();
 		
 		variablesStates = new int[csp.getNbVariables()];
 		domainsSizes = new int [csp.getNbVariables()];
@@ -1135,9 +1096,9 @@ public class Solver2 {
 			i ++;
 		}
 
-		if (flagSymetries) {
-			initializeSymmetriesVariables(csp, sat);
-		}
+		if (flagSymetries) 
+			initializeSymmetriesVariables();
+		
 		int resultSymmetries = 0;
 		
 		
@@ -1148,15 +1109,15 @@ public class Solver2 {
 					//idClause = degHeuristic(csp);
 					
 					if (flagSymetries && !flagNoMoreSymmetries) {
-						resultSymmetries = breakSymmetries(csp, sat);
+						resultSymmetries = breakSymmetries();
 						if (resultSymmetries == -1) break;
 					}
 					
-					couple = selectCouple(sat, idClause);
+					couple = selectCouple(idClause);
 					break;
 					
 				case SAME_VARIABLE :
-					couple = selectCouple(sat, idClause);
+					couple = selectCouple(idClause);
 					break;
 			}
 		
@@ -1178,8 +1139,8 @@ public class Solver2 {
 					iA ++;
 				}
 				
-				nx = negation(sat, x);
-				ny = negation(sat, y);
+				nx = negation(x);
+				ny = negation(y);
 				
 				C[iC] = x;
 				iC ++;
@@ -1192,7 +1153,7 @@ public class Solver2 {
 				L2[0] = nx;
 				L2[1] = y;
 				
-				int r = propagationAll(sat);
+				int r = propagationAll();
 				
 				if (r == 1) {
 					PA = L1;
@@ -1209,7 +1170,7 @@ public class Solver2 {
 					Utils.clearArray(L1);
 					Utils.clearArray(L2);
 					CP.add(0);
-					if (!backtrack(sat, CP, CC)) {
+					if (!backtrack(CP, CC)) {
 						if (solutions.size() == 0)
 							System.out.println("# UNSATISFIABLE");
 						else {
@@ -1224,7 +1185,7 @@ public class Solver2 {
 					}
 				} else {
 					action = Action.HEURISTIC;
-					propagation(sat, PA, false);
+					propagation(PA, false);
 					
 					int size = 0;
 					for (int index = 0 ; i < PA.length ; index++) {
@@ -1251,10 +1212,10 @@ public class Solver2 {
 					
 					sat.setNbLitteralsSat(sat.getNbLitteralsSat() + size);
 					
-					if (modelExists(csp,sat)) {
+					if (modelExists()) {
 						if (flagAllSolutions) {
-							deductMultipleSolution(sat, csp, CC);
-							if (!backtrack(sat, CP, CC)) {
+							deductMultipleSolution(CC);
+							if (!backtrack(CP, CC)) {
 								if (solutions.size() == 0)
 									System.out.println("# UNSATISFIABLE");
 								else {
@@ -1270,7 +1231,7 @@ public class Solver2 {
 						} else {
 							//deductModel(sat);
 							//TODO : changer
-							deductMultipleSolution(sat, csp, CC);
+							deductMultipleSolution(CC);
 							displayAllSolutions(sat, csp);
 							System.out.println("nb_nodes : " + nbNodes);
 							long end = System.currentTimeMillis();
@@ -1289,7 +1250,7 @@ public class Solver2 {
 					iA ++;
 				}
 				
-				nx = negation(sat, x);
+				nx = negation(x);
 				
 				C[iC] = x;
 				iC ++;
@@ -1302,10 +1263,10 @@ public class Solver2 {
 					
 				clearLP();
 					
-				if (modelExists(csp,sat)) {
+				if (modelExists()) {
 					if (flagAllSolutions) {
-						deductMultipleSolution(sat, csp, CC);
-						if (!backtrack(sat, CP, CC)) {
+						deductMultipleSolution(CC);
+						if (!backtrack(CP, CC)) {
 							if (solutions.size() == 0)
 								System.out.println("# UNSATISFIABLE");
 							else {
@@ -1321,7 +1282,7 @@ public class Solver2 {
 					} else {
 						//deductModel(sat);
 						//TODO MODIF
-						deductMultipleSolution(sat, csp, CC);
+						deductMultipleSolution(CC);
 						displayAllSolutions(sat, csp);
 						System.out.println("nb_nodes : " + nbNodes);
 						long end = System.currentTimeMillis();
@@ -1331,7 +1292,7 @@ public class Solver2 {
 				}
 			} else if (x == null && y == null) {
 				
-				if (!backtrack(sat, CP, CC)) {
+				if (!backtrack(CP, CC)) {
 					if (solutions.size() == 0)
 						System.out.println("# UNSATISFIABLE");
 					else {
