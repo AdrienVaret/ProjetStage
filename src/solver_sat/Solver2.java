@@ -72,6 +72,8 @@ public class Solver2 {
 	
 	static int nbProp;
 	
+	static int [] propagateds;
+	
 	/*
 	 * Variables used for breaking symmetries
 	 */
@@ -535,9 +537,7 @@ public class Solver2 {
 	public static boolean propagation(SAT sat, Litteral [] L, boolean intersection) {
 		
 		long begin = System.currentTimeMillis();
-		int [] propagateds = new int [sat.getNbVariables() * 2];
 		int idLitteral = 0;
-		
 		
 		for (Litteral l : L) {
 			if (l == null) break;
@@ -552,11 +552,6 @@ public class Solver2 {
 			nl = negation(sat, l);
 			int toShift = 0;
 			for (int i = 1 ; i < occ[nl.getId()][0] + 1 ; i++) {
-								
-				if (occ[nl.getId()][i] == -1 ) {
-					System.out.println("");
-				}
-				
 				Clause c = sat.getClauses().get(occ[nl.getId()][i]);
 				Litteral x = sat.getCouplePtr(c.getId()).getV1();
 				Litteral y = sat.getCouplePtr(c.getId()).getV2();
@@ -572,11 +567,16 @@ public class Solver2 {
 							Utils.shiftAll(occ[nl.getId()], toShift);
 							toShift = 0;
 							nbProp = indexLitteral;
+							
+							for (int index = 0 ; index < L.length ; index++) {
+								if (L[index] == null) break;
+								propagateds[L[index].getId()] = 0;
+							}
+							
 							return false;
 						}
 						
 						if (isAffected(sat, y)) {
-							
 							if (!isSat(sat, y)) {
 								result.setState(false);
 								
@@ -585,6 +585,12 @@ public class Solver2 {
 								
 								indexLitteral ++;
 								nbProp = indexLitteral;
+								
+								for (int index = 0 ; index < L.length ; index++) {
+									if (L[index] == null) break;
+									propagateds[L[index].getId()] = 0;
+								}
+								
 								return false;
 							}
 						} else {
@@ -611,6 +617,12 @@ public class Solver2 {
 								Utils.shiftAll(occ[nl.getId()], toShift);
 								toShift = 0;
 								nbProp = indexLitteral;
+								
+								for (int index = 0 ; index < L.length ; index++) {
+									if (L[index] == null) break;
+									propagateds[L[index].getId()] = 0;
+								}
+								
 								return false;
 							}
 						} else { 
@@ -684,6 +696,12 @@ public class Solver2 {
 		long end = System.currentTimeMillis();
 		propagationTime += end - begin;
 		nbProp = indexLitteral;
+		
+		for (int index = 0 ; index < L.length ; index++) {
+			if (L[index] == null) break;
+			propagateds[L[index].getId()] = 0;
+		}
+		
 		return true;
 	}	
 	
@@ -1036,6 +1054,7 @@ public class Solver2 {
 		iEP = new int [csp.getNbVariables()];
 		result = new ResultPropagation(sat.getNbVariables() * 2);
 		occ = new int [sat.getNbVariables() * 2][sat.getMaxOccurences() + 2];
+		propagateds = new int [sat.getNbVariables() * 2];
 	}
 	
 	public static ArrayList<Cause> getCauses(Litteral l, ArrayList<ArrayList<Cause>> graph, int [] occurences){
