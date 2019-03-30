@@ -8,6 +8,13 @@ import sat.SAT;
 
 public class Utils {
 	
+	public static void clearArray(Object [] t) {
+		for (int i = 0 ; i < t.length ; i++) {
+			if (t[i] == null) break;
+			t[i] = null;
+		}
+	}
+	
 	public static void shiftToEnd(int [] t, int i) {
 		int index = i;
 		while (index + 1 < t.length) {
