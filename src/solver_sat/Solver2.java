@@ -30,7 +30,6 @@ public class Solver2 {
 	static boolean flagAllSolutions = false;
 	static boolean flagDomHeuristic = true;
 	static boolean flagDegHeuristic;
-	static boolean flagWriteTree = false;
 	static boolean flagSymetries = false;
 	static boolean flagNoMoreSymmetries = false;
 	static boolean flagSupport = false;
@@ -66,7 +65,7 @@ public class Solver2 {
 	static ResultPropagation result;
 	
 	static Litteral [] LP, PA, toPropage, P, C, L1, L2;
-	static int iLP = 0, iPA = 0, iTP = 0, iA = 0, iP = 0, iC = 0, iL1, iL2;
+	static int iLP = 0, iPA = 0, iTP = 0, iA = 0, iP = 0, iC = 0;
 	
 	static ArrayList<Integer> CP = new ArrayList<Integer>();
 	static ArrayList<Integer> CC = new ArrayList<Integer>();
@@ -729,7 +728,7 @@ public class Solver2 {
 	 * @param L
 	 * @param shift
 	 */
-	public static void restoreAll(SAT sat, ArrayList<Litteral> L, int [] shift) {
+	public static void restoreAll(SAT sat, ArrayList<Litteral> L) {
 		long begin = System.currentTimeMillis();
 		
 		for (Litteral l : L) {
@@ -740,7 +739,7 @@ public class Solver2 {
 		restoreTime += time;
 	}
 	
-	public static void restoreAll(SAT sat, Litteral [] L, int [] shift) {
+	public static void restoreAll(SAT sat, Litteral [] L) {
 		long begin = System.currentTimeMillis();
 		
 		for (Litteral l : L) {
@@ -759,13 +758,11 @@ public class Solver2 {
 	 * 3 : !r1 @ !r2
 	 * 4 : r1 & r2
 	 */
-	public static int propagationAll(SAT sat, Litteral [] L1, Litteral [] L2, int [] shift) {
+	public static int propagationAll(SAT sat, Litteral [] L1, Litteral [] L2) {
 		boolean result1 = propagation(sat, L1, true);
-		iL1 = nbProp;
-		restoreAll(sat, L1, shift);
+		restoreAll(sat, L1);
 		boolean result2 = propagation(sat, L2, true);
-		iL2 = nbProp;
-		restoreAll(sat, L2, shift);
+		restoreAll(sat, L2);
 		
 		result.clear();
 		
@@ -817,9 +814,10 @@ public class Solver2 {
 			restore(sat, l);
 			P[iP-1] = null;
 			iP --;
-			int index = findIndex(shift, l.getId());
+			//int index = findIndex(shift, l.getId());
 			if (l.getId() % 2 == 1)
-				domainsSizes[index] ++;
+				domainsSizes[l.getIdVariable()] ++;
+				//domainsSizes[index] ++;
 		}
 		
 		for (int i = 0 ; i < nbChoices ; i++) {
@@ -844,7 +842,7 @@ public class Solver2 {
 		
 		if (!r) {
 			while (!r) {
-				restoreAll(sat, explicitsPropagations[idClause], shift);
+				restoreAll(sat, explicitsPropagations[idClause]);
 				
 				affectations[iA-1] = -1;
 				iA --;
@@ -881,10 +879,11 @@ public class Solver2 {
 					restore(sat, l);
 					P[iP-1] = null;
 					iP --;
-					int index = findIndex(shift, l.getId());
+					//int index = findIndex(shift, l.getId());
 					
 					if (l.getId() % 2 == 1)
-						domainsSizes[index] ++;
+						domainsSizes[l.getIdVariable()] ++;
+						//domainsSizes[index] ++;
 				}
 				
 				for (int i = 0 ; i < nbChoices ; i++) {
@@ -1256,15 +1255,13 @@ public class Solver2 {
 				sat.getChoises()[xid] = 1;
 				sat.getChoises()[yid] = 1;
 				
-				//Litteral [] L1 = new Litteral [sat.getNbVariables() * 2];
-				iL1 = iL2 = 2;
 				L1[0] = x;
 				L1[1] = ny;
 				Litteral [] L2 = new Litteral [sat.getNbVariables() * 2];
 				L2[0] = nx;
 				L2[1] = y;
 				
-				int r = propagationAll(sat, L1, L2, shift);
+				int r = propagationAll(sat, L1, L2);
 				
 				if (r == 1) {
 					PA = L1;
@@ -1313,9 +1310,10 @@ public class Solver2 {
 										
 					for (Litteral l : PA) {
 						if (l == null) break;
-						int index = findIndex(shift, l.getId());
+						//int index = findIndex(shift, l.getId());
 						if (l.getId() % 2 == 1)
-							domainsSizes[index] --;
+							domainsSizes[l.getIdVariable()] --;
+							//domainsSizes[index] --;
 					}
 								
 					clearLP();
