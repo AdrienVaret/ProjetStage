@@ -351,24 +351,7 @@ public class Solver2 {
 		long end = System.currentTimeMillis();
 		timeComputeSolution += (end - begin);
 	}
-	
-	/**
-	 * Display one solution
-	 * @param csp
-	 * @param sat
-	 */
-	public static void displaySolution(BinCSP csp, SAT sat) {
-		int i = 0;
-		for (int v = 0 ; v < csp.getNbVariables() ; v++) {
-			Variable x = csp.getVariables().get(v);
-			for (String value : x.getDomain().getValues()) {
-				if (sat.getLitteralState(i) == 1)
-					System.out.println("# " + x.getName() + " = " + value);
-				i++;
-			}
-		}
-	}
-	
+		
 	/**
 	 * Return litteral's negation
 	 * @param sat
@@ -726,7 +709,6 @@ public class Solver2 {
 	 * Restore many affectations
 	 * @param sat
 	 * @param L
-	 * @param shift
 	 */
 	public static void restoreAll(SAT sat, ArrayList<Litteral> L) {
 		long begin = System.currentTimeMillis();
@@ -973,32 +955,18 @@ public class Solver2 {
 		}
 	}
 	
-	public static void displayAllSolutions(SAT sat, BinCSP csp, int [] shift) {
+	public static void displayAllSolutions(SAT sat, BinCSP csp) {
+		System.out.println("# " + solutions.size() + " solutions found");
 		int nbSolutions = 1;
 		for (Litteral [] L : solutions) {
 			if (flagDisplay) 
-				System.out.println("# Solution " + nbSolutions + " : ");
+				System.out.print("# Solution " + nbSolutions + " : [");
 			for (Litteral l : L) {
-				int id = 0, begin = 0, indexVariable = 0;
-				for (int i = 0 ; i < shift.length ; i++) {
-					id = l.getId() / 2;
-					if (i < shift.length - 1) {
-						if (shift[i] <= id && shift[i+1] > id) {
-							begin = shift[i];
-							indexVariable = i;
-							break;
-						}
-					} else {
-						begin = shift[i];
-					}
-				}
-				int indexValue = id - begin;
-				String name = csp.getVariables().get(indexVariable).getName();
-				String value = csp.getVariables().get(indexVariable).getDomain().get(indexValue);
-				if (flagDisplay) 
-					System.out.println("# " + name + " = " + value);
+				if (flagDisplay)
+					System.out.print(l.toString() + " ");
 			}
 			if (flagDisplay)
+				System.out.println("]");
 				System.out.println("##");
 			nbSolutions ++;
 		}
@@ -1162,24 +1130,21 @@ public class Solver2 {
 		
 		variablesStates = new int[csp.getNbVariables()];
 		domainsSizes = new int [csp.getNbVariables()];
-		int [] shift = new int[csp.getNbVariables() + 1];
 		
-		shift [0] = 0;
 		int i = 1;
-		int sum = 0;
 		
 		int maxDomain = 0;
 		for (Variable v : csp.getVariables()) {
 			domainsSizes[v.getIndex()] = v.getDomain().size();
 			int size = v.getDomain().size();
-			sum += size;
-			shift[i] = sum;
 			if (size > maxDomain)
 				maxDomain = size;
 			i ++;
 		}
 
-		initializeSymmetriesVariables(csp, sat);
+		if (flagSymetries) {
+			initializeSymmetriesVariables(csp, sat);
+		}
 		int resultSymmetries = 0;
 		
 		
@@ -1265,7 +1230,7 @@ public class Solver2 {
 						else {
 							System.out.println("# SATISFIABLE");
 							System.out.println("# " + solutions.size() + " solutions found");
-							displayAllSolutions(sat, csp, shift);
+							displayAllSolutions(sat, csp);
 						}
 						System.out.println("nb_nodes : " + nbNodes);
 						long end = System.currentTimeMillis();
@@ -1310,7 +1275,7 @@ public class Solver2 {
 								else {
 									System.out.println("# SATISFIABLE");
 									System.out.println("# " + solutions.size() + " solutions found");
-									displayAllSolutions(sat, csp, shift);
+									displayAllSolutions(sat, csp);
 								}
 								System.out.println("nb_nodes : " + nbNodes);
 								long end = System.currentTimeMillis();
@@ -1321,8 +1286,7 @@ public class Solver2 {
 							//deductModel(sat);
 							//TODO : changer
 							deductMultipleSolution(sat, csp, CC);
-							//displaySolution(csp, sat);
-							displayAllSolutions(sat, csp, shift);
+							displayAllSolutions(sat, csp);
 							System.out.println("nb_nodes : " + nbNodes);
 							long end = System.currentTimeMillis();
 							solveTime = end - begin;
@@ -1365,7 +1329,7 @@ public class Solver2 {
 							else {
 								System.out.println("# SATISFIABLE");
 								System.out.println("# " + solutions.size() + " solutions found");
-								displayAllSolutions(sat, csp, shift);
+								displayAllSolutions(sat, csp);
 							}
 							System.out.println("nb_nodes : " + nbNodes);
 							long end = System.currentTimeMillis();								
@@ -1376,8 +1340,7 @@ public class Solver2 {
 						//deductModel(sat);
 						//TODO MODIF
 						deductMultipleSolution(sat, csp, CC);
-						//displaySolution(csp, sat);
-						displayAllSolutions(sat, csp, shift);
+						displayAllSolutions(sat, csp);
 						System.out.println("nb_nodes : " + nbNodes);
 						long end = System.currentTimeMillis();
 						solveTime = end - begin;
@@ -1391,7 +1354,7 @@ public class Solver2 {
 						System.out.println("# UNSATISFIABLE");
 					else {
 						System.out.println("# " + solutions.size() + " solutions found");
-						displayAllSolutions(sat, csp, shift);
+						displayAllSolutions(sat, csp);
 					}
 					System.out.println("nb_nodes : " + nbNodes);
 					long end = System.currentTimeMillis();
