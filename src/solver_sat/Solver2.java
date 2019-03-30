@@ -332,12 +332,7 @@ public class Solver2 {
 				ic ++;
 				L[0] = l;
 				boolean r = propagation(sat, L, false);
-				
-				//for (int i = 0 ; i < iX ; i ++) {
-				//	p[ip] = X[i];
-				//	ip ++;
-				//}
-				
+
 				int size = 0;
 				for (int i = 0 ; i < L.length ; i++) {
 					if (L[i] == null) break;
@@ -392,11 +387,7 @@ public class Solver2 {
 				}
 			}
 		}
-		
-		//for (int i = 0 ; i < initialStates.length ; i++) {
-		//	sat.getLitteralsStates()[i] = initialStates[i];
-		//}
-		
+
 		int max = iep[0];
 		for (int i = 0 ; i < max ; i++) {
 			Litteral toRestore = ep[0][i];
@@ -678,7 +669,7 @@ public class Solver2 {
 								
 							}
 						}
-					} else if (/**/y != null && /**/ y.equals(nl)) {
+					} else if (y != null && y.equals(nl)) {
 						if (isAffected(sat, x)) {
 							if (isSat(sat, x))
 								statesClauses[c.getId()] = 1;
@@ -888,16 +879,14 @@ public class Solver2 {
 		}
 		
 		boolean r = propagation(sat, toPropage, false);
-		
+				
 		for (int i = 0 ; i < toPropage.length ; i++) {
 			if (toPropage[i] == null) break;
 			explicitsPropagations[idClause][iEP[idClause]] = toPropage[i];
 			iEP[idClause] ++;
 		}
-		
+			
 		clearTP();
-		//result.clear();
-		
 		
 		if (!r) {
 			while (!r) {
@@ -927,8 +916,7 @@ public class Solver2 {
 					backtrackTime += (end - begin);
 					return false;
 				}
-					
-				
+								
 				nbLitterals = CP.get(CP.size()-1);
 				CP.remove(CP.size()-1);
 				nbChoices = CC.get(CC.size()-1);
@@ -957,14 +945,15 @@ public class Solver2 {
 				
 				r = propagation(sat, toPropage, false);
 	
+				
 				for (int i = 0 ; i < toPropage.length ; i++) {
-					if (toPropage[i] == null) break;
-					explicitsPropagations[idClause][iEP[idClause]] = toPropage[i];
-					iEP[idClause] ++;
+						if (toPropage[i] == null) break;
+						explicitsPropagations[idClause][iEP[idClause]] = toPropage[i];
+						iEP[idClause] ++;
 				}
+				
 
 				clearTP();
-				//result.clear();
 			}
 			
 			nodeState = true;
@@ -1121,25 +1110,12 @@ public class Solver2 {
 		}
 		
 		boolean r = propagation(sat, L1, false);
-		//clearArray(L1);
-		//result.clear();
 		V--;
 		
 		if (!r) {
 			System.out.println("UNSAT");
 			return -1;
 		}
-		
-		//for (int i = 0 ; i < iX ; i++) {
-		//	Litteral x = X[i];
-		//	int indexX = x.getId();
-		//	if (indexX % 2 != 0) { //if a negation is propagated
-		//		int color = findColor(indexX - 1, csp);
-		//		state[color] --;
-		//	}
-		//	SP[iSP] = x;
-		//	iSP ++;
-		//}
 		
 		int size = 0;
 		for (int i = 0 ; i < L1.length ; i++) {
@@ -1297,8 +1273,6 @@ public class Solver2 {
 				break;
 			}
 			
-			//nbNodes ++;	
-			
 			Litteral x = couple.getV1();
 			Litteral y = couple.getV2();
 			Litteral nx, ny;
@@ -1424,12 +1398,12 @@ public class Solver2 {
 					
 			} else if (x != null && y == null) {
 				
+				CP.add(0);
+				
 				if (action != Action.SAME_VARIABLE) {
 					affectations[iA] = idClause;
 					iA ++;
 				}
-				
-				//nbNodes ++;
 				
 				nx = negation(sat, x);
 				
@@ -1439,10 +1413,7 @@ public class Solver2 {
 				
 				int xid = getIndex(x.getId());
 				sat.getChoises()[xid] = 1;
-			
-				Litteral [] L1 = new Litteral[sat.getNbVariables() * 2];
-				L1[0] = x;
-				
+						
 				action = Action.HEURISTIC;
 								
 				variablesStates[idClause] = 1;
@@ -1462,8 +1433,9 @@ public class Solver2 {
 								displayAllSolutions(sat, csp, shift);
 							}
 							System.out.println("nb_nodes : " + nbNodes);
-							long end = System.currentTimeMillis();								solveTime = end - begin;
-								break;
+							long end = System.currentTimeMillis();								
+							solveTime = end - begin;
+							break;
 						}
 					} else {
 						//deductModel(sat);
@@ -1558,7 +1530,7 @@ public class Solver2 {
 		flagSupport = false;
 		flagDisplay = true;
 		
-		BinCSP csp = Generator.generatePigeons(5,4);
+		BinCSP csp = Generator.generatePigeons(7,6);
 		solve(csp);
 		
 		displayTime();
