@@ -69,11 +69,10 @@ public class Solver2 {
 	
 	static ArrayList<Integer> CP = new ArrayList<Integer>();
 	static ArrayList<Integer> CC = new ArrayList<Integer>();
-	
 	static int nbProp;
-	
 	static int [] propagateds;
 	
+	static Litteral x, y, nx, ny;
 	/*
 	 * Variables used for breaking symmetries
 	 */
@@ -1170,9 +1169,8 @@ public class Solver2 {
 				break;
 			}
 			
-			Litteral x = couple.getV1();
-			Litteral y = couple.getV2();
-			Litteral nx, ny;
+			x = couple.getV1();
+			y = couple.getV2();
 			
 			if (x != null && y != null) {
 				
