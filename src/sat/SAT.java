@@ -1,7 +1,10 @@
 package sat;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -90,6 +93,23 @@ public class SAT {
 				writer.write(line + "\n");
 			}
 			writer.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public static void parseCNFFile(String path) {
+		try {
+			BufferedReader r = new BufferedReader(new FileReader(new File(path)));
+			String line = null;
+			while ((line = r.readLine()) != null) {
+				String [] splittedLine = line.split(" ");
+				
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -12,7 +12,6 @@ import sat.Litteral;
 import sat.SAT;
 import utils.Cause;
 import utils.GenericCouple;
-import utils.GenericCouple2;
 import utils.Utils;
 
 public class Solver2 {
@@ -154,7 +153,7 @@ public class Solver2 {
 		Litteral [] L = new Litteral [sat.getNbVariables() * 2]; 
 		L[0] = l;
 		
-		boolean r = propagation(L, false);
+		boolean r = bcp(L, false);
 		
 		c[ic - 1] = null;
 		ic --;
@@ -196,7 +195,7 @@ public class Solver2 {
 				L = new Litteral [sat.getNbVariables() * 2]; 
 				L[0] = l;
 			
-				r = propagation(L, false);
+				r = bcp(L, false);
 			
 				c[ic - 1] = null;
 				ic --;
@@ -262,7 +261,7 @@ public class Solver2 {
 				c[ic] = l;
 				ic ++;
 				L[0] = l;
-				boolean r = propagation(L, false);
+				boolean r = bcp(L, false);
 
 				int size = 0;
 				for (int i = 0 ; i < L.length ; i++) {
@@ -481,36 +480,23 @@ public class Solver2 {
 	 * @param clause
 	 * @return GenericCouple<Integer, Litteral>
 	 */
-	public static GenericCouple2<Integer, Litteral> findUnafectedOrSatLitteral(Clause clause) {
+	public static int findUnafectedOrSatLitteral(Clause clause) {
 		long begin = System.currentTimeMillis();
 		
 		for (int i = 2 ; i < clause.getLitterals().size() ; i++) {
 			Litteral l = clause.get(i);
-			int id = getIndex(l.getId());
-			
-			if (((sat.getLitteralState(id) == 0) || (isSat(l)))){
-				return new GenericCouple2<Integer, Litteral>(i,l);
-				//coupleAff.setValue1(i);
-				//coupleAff.setValue2(l);
-			}
+			int id = getIndex(l.getId());			
+			if (((sat.getLitteralState(id) == 0) || (isSat(l)))) return i;			
 		}
 		
 		long end = System.currentTimeMillis();
 		long time = end - begin;
 		findUnaffectedTime += time;
-		return new GenericCouple2<Integer, Litteral> (null, null);
-		//coupleAff.setValue1(null);
-		//coupleAff.setValue2(null);
+		return -1;
 	}
 	
-	/**
-	 * BCP
-	 * @param sat
-	 * @param L
-	 * @param action (1 = intersection), set (1 = X, 2 = Y)
-	 * @return
-	 */
-	public static boolean propagation(Litteral [] L, boolean intersection) {
+
+	public static boolean bcp(Litteral [] L, boolean intersection) {
 		
 		long begin = System.currentTimeMillis();
 		int idLitteral = 0;
@@ -532,8 +518,12 @@ public class Solver2 {
 				Litteral x = sat.getCouplePtr(c.getId()).getV1();
 				Litteral y = sat.getCouplePtr(c.getId()).getV2();
 				
-				GenericCouple2<Integer, Litteral> coupleAff = findUnafectedOrSatLitteral(c);
-				Litteral affectable = coupleAff.getValue2();
+				int iUnaff = findUnafectedOrSatLitteral(c);
+				Litteral affectable;
+				if (iUnaff == -1)
+					affectable = null;
+				else 
+					affectable = c.get(iUnaff);
 				
 				if (affectable == null) {
 					if (x != null && x.equals(nl)) { //ajout de x != null
@@ -622,6 +612,7 @@ public class Solver2 {
 					if (x.equals(nl)) {
 						int xid = x.getId();
 						int index = 1;
+						
 						while (occ[xid][index] != c.getId()) {
 							index ++;
 						}
@@ -629,14 +620,14 @@ public class Solver2 {
 						occ[xid][index] = -1;
 						toShift ++;
 						
-						int lid = coupleAff.getValue2().getId();
+						int lid = affectable.getId();
 						
 						int size = occ[lid][0];
 						occ[lid][size+1] = c.getId();
 						occ[lid][size+2] = -1;
 						occ[lid][0] ++;
 						
-						Collections.swap(c.getLitterals(), 0, coupleAff.getValue1());
+						Collections.swap(c.getLitterals(), 0, iUnaff);
 						sat.setCouplePtr(c.getId(), c.get(0), c.get(1));
 						
 					} else if (y.equals(nl)){
@@ -649,14 +640,14 @@ public class Solver2 {
 						occ[yid][index] = -1;
 						toShift ++;
 						
-						int lid = coupleAff.getValue2().getId();
+						int lid = affectable.getId();
 						
 						int size = occ[lid][0];
 						occ[lid][size+1] = c.getId();
 						occ[lid][size+2] = -1;
 						occ[lid][0] ++;
 						
-						Collections.swap(c.getLitterals(), 1, coupleAff.getValue1());
+						Collections.swap(c.getLitterals(), 1, iUnaff);
 						sat.setCouplePtr(c.getId(), c.get(0), c.get(1));
 					}
 				
@@ -723,10 +714,10 @@ public class Solver2 {
 		restoreTime += time;
 	}
 	
-	public static int propagationAll() {
-		boolean result1 = propagation(L1, true);
+	public static int testAndFilter() {
+		boolean result1 = bcp(L1, true);
 		restoreAll(L1);
-		boolean result2 = propagation(L2, true);
+		boolean result2 = bcp(L2, true);
 		restoreAll(L2);
 		
 		result.clear();
@@ -776,7 +767,7 @@ public class Solver2 {
 			iC --;
 		}
 		
-		boolean r = propagation(toPropage, false);
+		boolean r = bcp(toPropage, false);
 				
 		for (int i = 0 ; i < toPropage.length ; i++) {
 			if (toPropage[i] == null) break;
@@ -838,7 +829,7 @@ public class Solver2 {
 					iC --;
 				}
 				
-				r = propagation(toPropage, false);
+				r = bcp(toPropage, false);
 					
 				for (int i = 0 ; i < toPropage.length ; i++) {
 						if (toPropage[i] == null) break;
@@ -963,7 +954,7 @@ public class Solver2 {
 			iL1 ++;
 		}
 		
-		boolean r = propagation(L1, false);
+		boolean r = bcp(L1, false);
 		V--;
 		
 		if (!r) return -1;
@@ -1056,15 +1047,14 @@ public class Solver2 {
 	 * Solve the csp
 	 * @param csp
 	 */
-	public static void solve() {
-
-		long begin = System.currentTimeMillis();
-		
+	public static void solve() {	
 		if (flagSupport)
 			sat = BinCSPConverter.supportEncoding(csp);
 		else 
 			sat = BinCSPConverter.directEncoding(csp);
 			
+		long begin = System.currentTimeMillis();
+		
 		initialize();
 		initializeOcc();
 		
@@ -1138,7 +1128,7 @@ public class Solver2 {
 				L2[0] = nx;
 				L2[1] = y;
 				
-				int r = propagationAll();
+				int r = testAndFilter();
 				
 				if (r == 1) {
 					PA = L1;
@@ -1170,7 +1160,7 @@ public class Solver2 {
 					}
 				} else {
 					action = Action.HEURISTIC;
-					propagation(PA, false);
+					bcp(PA, false);
 					
 					int size = 0;
 					for (int index = 0 ; i < PA.length ; index++) {
