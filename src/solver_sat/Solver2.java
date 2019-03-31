@@ -100,18 +100,6 @@ public class Solver2 {
 		}
 	}
 	
-	
-	public static void clearArray(Object [] array) {
-		for (int index = 0 ; index < array.length ; index ++) array[index] = null;
-	}
-	
-	public static void clearArray(Litteral [] array, int index) {
-		for (int i = 0 ; i < index ; i++) 
-			array[i] = null;
-		index = 0;
-	}
-	
-	// TODO : changer ce bordel c'est moche !
 	public static void clearEP(int index) {
 		for (int i = 0 ; i < iEP[index] ; i++)
 			explicitsPropagations[index][i] = null;
@@ -122,12 +110,7 @@ public class Solver2 {
 		for (int i = 0 ; i < toPropage.length ; i++) toPropage[i] = null;
 		iTP = 0;
 	}
-	
-	public static void clearPA() {
-		for (int i = 0 ; i < iPA ; i++) PA[i] = null;
-		iPA = 0;
-	}
-	
+		
 	public static void clearLP() {
 		for (int i = 0 ; i < iLP ; i++) LP[i] = null;
 		iLP = 0;
@@ -227,7 +210,7 @@ public class Solver2 {
 		return 1;
 	}
 	
-	public static void deductMultipleSolution(ArrayList<Integer> CC) {
+	public static void deductMultipleSolution() {
 		
 		long begin = System.currentTimeMillis();
 				
@@ -483,7 +466,7 @@ public class Solver2 {
 	 * @param sat
 	 * @param l
 	 */
-	public static void affect(SAT sat, Litteral l) {
+	public static void affect(Litteral l) {
 		if (l.getId() % 2 == 0)
 			sat.getLitteralsStates()[getIndex(l.getId())] = 1;
 		else
@@ -675,7 +658,7 @@ public class Solver2 {
 			}
 			Utils.shiftAll(occ[nl.getId()], toShift);
 			toShift = 0;
-			affect(sat, l);
+			affect(l);
 			indexLitteral ++;
 			l = L[indexLitteral];
 		}
@@ -769,9 +752,6 @@ public class Solver2 {
 			return false;
 		
 		variablesStates[idClause] = 0;
-		
-		
-		//nbVariablesSat --;
 		
 		for (int i = 0 ; i < nbLitterals ; i++) {
 			Litteral l = P[iP-1];
@@ -876,10 +856,6 @@ public class Solver2 {
 	}
 	
 	public static boolean modelExists() {
-		//for (int i = 0 ; i < variablesStates.length ; i++) {
-		//	if (variablesStates[i] == 0) return false;
-		//}
-		//return true;
 		if (nbVariablesSat == csp.getNbVariables()) return true;
 		return false;
 	}
@@ -1105,8 +1081,7 @@ public class Solver2 {
 			initializeSymmetriesVariables();
 		
 		int resultSymmetries = 0;
-		
-		
+			
 		while (true) {		
 			switch (action) {
 				case HEURISTIC : 
@@ -1218,7 +1193,7 @@ public class Solver2 {
 					if (modelExists()) {
 						nbVariablesSat --;
 						if (flagAllSolutions) {
-							deductMultipleSolution(CC);
+							deductMultipleSolution();
 							if (!backtrack()) {
 								if (solutions.size() == 0)
 									System.out.println("# UNSATISFIABLE");
@@ -1233,7 +1208,7 @@ public class Solver2 {
 								break;
 							}
 						} else {
-							deductMultipleSolution(CC);
+							deductMultipleSolution();
 							displayAllSolutions(sat, csp);
 							System.out.println("nb_nodes : " + nbNodes);
 							long end = System.currentTimeMillis();
@@ -1268,7 +1243,7 @@ public class Solver2 {
 				if (modelExists()) {
 					nbVariablesSat --;
 					if (flagAllSolutions) {
-						deductMultipleSolution(CC);
+						deductMultipleSolution();
 						if (!backtrack()) {
 							if (solutions.size() == 0)
 								System.out.println("# UNSATISFIABLE");
@@ -1283,7 +1258,7 @@ public class Solver2 {
 							break;
 						}
 					} else {
-						deductMultipleSolution(CC);
+						deductMultipleSolution();
 						displayAllSolutions(sat, csp);
 						System.out.println("nb_nodes : " + nbNodes);
 						long end = System.currentTimeMillis();
@@ -1292,7 +1267,6 @@ public class Solver2 {
 					}
 				}
 			} else if (x == null && y == null) {
-				
 				if (!backtrack()) {
 					if (solutions.size() == 0)
 						System.out.println("# UNSATISFIABLE");
@@ -1333,38 +1307,7 @@ public class Solver2 {
 		solveTime = 0;
 		finalTime = 0;
 	}
-	
-	public static void clearVariables() {
-		
-		//displayTime();
-		
-		System.out.println("#########");
-		
-		//flagSupport = true;
-		ic = 0;
-		iA = 0;
-		nbNodes = 0;
-		
-		if (c != null) {
-			for (int i = 0 ; i < iC ; i++) {
-				c[iC] = null;
-			}
-		}
-		
-		solutions.clear();
-		
-		iC = 0;
-		CC.clear();
-		CP.clear();
-		
-		for (int i = 0 ; i < iP ; i++) {
-			P[i] = null;
-		}
-		iP = 0;
-		
-		resetTimer();
-	}
-	
+
 	public static void main(String [] args) {
 		flagAllSolutions = true;
 		flagDomHeuristic = false;
@@ -1372,7 +1315,7 @@ public class Solver2 {
 		flagSupport = false;
 		flagDisplay = true;
 		
-		csp = Generator.generatePigeons(10,9);
+		csp = Generator.generatePigeons(4,4);
 		solve();
 		
 		displayTime();
