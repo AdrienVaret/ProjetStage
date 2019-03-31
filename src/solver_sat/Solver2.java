@@ -873,12 +873,12 @@ public class Solver2 {
 	}
 	
 	public static boolean modelExists() {
-		//for (int i = 0 ; i < variablesStates.length ; i++) {
-		//	if (variablesStates[i] == 0) return false;
-		//}
-		//return true;
-		if (nbVariablesSat == csp.getNbVariables()) return true;
-		return false;
+		for (int i = 0 ; i < variablesStates.length ; i++) {
+			if (variablesStates[i] == 0) return false;
+		}
+		return true;
+		//if (nbVariablesSat == csp.getNbVariables()) return true;
+		//return false;
 	}
 	
 	/**
@@ -1229,8 +1229,6 @@ public class Solver2 {
 								break;
 							}
 						} else {
-							//deductModel(sat);
-							//TODO : changer
 							deductMultipleSolution(CC);
 							displayAllSolutions(sat, csp);
 							System.out.println("nb_nodes : " + nbNodes);
@@ -1280,8 +1278,6 @@ public class Solver2 {
 							break;
 						}
 					} else {
-						//deductModel(sat);
-						//TODO MODIF
 						deductMultipleSolution(CC);
 						displayAllSolutions(sat, csp);
 						System.out.println("nb_nodes : " + nbNodes);
