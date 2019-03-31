@@ -1046,7 +1046,6 @@ public class Solver2 {
 		countSP = new ArrayList<Integer>();
 	}
 	
-	
 	/**
 	 * Solve the csp
 	 * @param csp
@@ -1315,7 +1314,7 @@ public class Solver2 {
 		flagSupport = false;
 		flagDisplay = true;
 		
-		csp = Generator.generatePigeons(4,4);
+		csp = Generator.generatePigeons(10, 9);
 		solve();
 		
 		displayTime();
