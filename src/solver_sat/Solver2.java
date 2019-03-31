@@ -873,10 +873,12 @@ public class Solver2 {
 	}
 	
 	public static boolean modelExists() {
-		for (int i = 0 ; i < variablesStates.length ; i++) {
-			if (variablesStates[i] == 0) return false;
-		}
-		return true;
+		//for (int i = 0 ; i < variablesStates.length ; i++) {
+		//	if (variablesStates[i] == 0) return false;
+		//}
+		//return true;
+		if (nbVariablesSat == csp.getNbVariables()) return true;
+		return false;
 	}
 	
 	/**
@@ -887,7 +889,7 @@ public class Solver2 {
 		
 		for (int i = 0 ; i < sat.getNbVariables() * 2 ; i++) {
 			for (int j = 1 ; j < occ[i].length ; j++) {
-				occ[i][j] = -1;
+				occ[i][j] = -1; 
 			}
 		}
 		
@@ -1209,8 +1211,6 @@ public class Solver2 {
 					clearLP();
 					Utils.clearArray(L1);
 					Utils.clearArray(L2);
-					
-					sat.setNbLitteralsSat(sat.getNbLitteralsSat() + size);
 					
 					if (modelExists()) {
 						if (flagAllSolutions) {

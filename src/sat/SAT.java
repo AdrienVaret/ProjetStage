@@ -13,10 +13,7 @@ public class SAT {
 	private ArrayList<Clause> clauses;
 	private ArrayList<Litteral> litterals;
 	private ArrayList<GenericCouple<Litteral>> tabPtrs;
-	
 	private int[] litteralsStates;
-	
-	private int nbLitteralsSat;
 	private int maxOccurences;
 	
 	public SAT(int nbVariables, int nbClauses, ArrayList<Clause> clauses, ArrayList<Litteral> litterals, int maxOccurences) {
@@ -25,7 +22,6 @@ public class SAT {
 		this.clauses     = clauses;
 		this.litterals   = litterals;
 		litteralsStates  = new int [nbVariables];
-		nbLitteralsSat   = 0;
 		this.maxOccurences = maxOccurences;
 		initializePtrs();
 	}
@@ -81,14 +77,6 @@ public class SAT {
 	
 	public void setCouplePtr(int index, Litteral x, Litteral y) {
 		tabPtrs.set(index, new GenericCouple<Litteral>(x, y));
-	}
-	
-	public int getNbLitteralsSat() {
-		return nbLitteralsSat;
-	}
-	
-	public void setNbLitteralsSat(int nbLitteralsSat) {
-		this.nbLitteralsSat = nbLitteralsSat;
 	}
 	
 	public void exportToCNFFile(String outputFileName) {

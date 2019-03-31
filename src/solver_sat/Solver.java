@@ -1614,7 +1614,7 @@ public class Solver {
 				int yid = getIndex(y.getId());
 				
 				//sat.getChoises()[xid] = 1;
-				//sat.getChoises()[yid] = 1;
+				// sat.getChoises()[yid] = 1;
 				
 				Litteral [] L1 = new Litteral [sat.getNbVariables() * 2];
 				L1[0] = x;
@@ -1667,9 +1667,7 @@ public class Solver {
 						if (l.getId() % 2 == 1)
 							domainsSizes[index] --;
 					}
-					
-					sat.setNbLitteralsSat(sat.getNbLitteralsSat() + iX);
-					
+										
 					clearX();
 					
 					if (modelExists(csp,sat)) {
@@ -1771,8 +1769,6 @@ public class Solver {
 						if (l.getId() % 2 == 1) 
 							domainsSizes[index] --;
 					}
-					
-					sat.setNbLitteralsSat(sat.getNbLitteralsSat() + iX);
 					
 					clearX();
 					clearY();
