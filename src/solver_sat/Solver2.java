@@ -748,7 +748,7 @@ public class Solver2 {
 		else return 4;
 	}
 	
-	public static boolean backtrack(ArrayList<Integer> CP, ArrayList<Integer> CC) {
+	public static boolean backtrack() {
 
 		long begin = System.currentTimeMillis();
 		
@@ -1172,7 +1172,7 @@ public class Solver2 {
 					Utils.clearArray(L1);
 					Utils.clearArray(L2);
 					CP.add(0);
-					if (!backtrack(CP, CC)) {
+					if (!backtrack()) {
 						if (solutions.size() == 0)
 							System.out.println("# UNSATISFIABLE");
 						else {
@@ -1215,7 +1215,7 @@ public class Solver2 {
 					if (modelExists()) {
 						if (flagAllSolutions) {
 							deductMultipleSolution(CC);
-							if (!backtrack(CP, CC)) {
+							if (!backtrack()) {
 								if (solutions.size() == 0)
 									System.out.println("# UNSATISFIABLE");
 								else {
@@ -1264,7 +1264,7 @@ public class Solver2 {
 				if (modelExists()) {
 					if (flagAllSolutions) {
 						deductMultipleSolution(CC);
-						if (!backtrack(CP, CC)) {
+						if (!backtrack()) {
 							if (solutions.size() == 0)
 								System.out.println("# UNSATISFIABLE");
 							else {
@@ -1288,7 +1288,7 @@ public class Solver2 {
 				}
 			} else if (x == null && y == null) {
 				
-				if (!backtrack(CP, CC)) {
+				if (!backtrack()) {
 					if (solutions.size() == 0)
 						System.out.println("# UNSATISFIABLE");
 					else {
