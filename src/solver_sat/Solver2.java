@@ -770,6 +770,9 @@ public class Solver2 {
 		
 		variablesStates[idClause] = 0;
 		
+		
+		//nbVariablesSat --;
+		
 		for (int i = 0 ; i < nbLitterals ; i++) {
 			Litteral l = P[iP-1];
 			restore(l);
@@ -873,12 +876,12 @@ public class Solver2 {
 	}
 	
 	public static boolean modelExists() {
-		for (int i = 0 ; i < variablesStates.length ; i++) {
-			if (variablesStates[i] == 0) return false;
-		}
-		return true;
-		//if (nbVariablesSat == csp.getNbVariables()) return true;
-		//return false;
+		//for (int i = 0 ; i < variablesStates.length ; i++) {
+		//	if (variablesStates[i] == 0) return false;
+		//}
+		//return true;
+		if (nbVariablesSat == csp.getNbVariables()) return true;
+		return false;
 	}
 	
 	/**
@@ -1213,6 +1216,7 @@ public class Solver2 {
 					Utils.clearArray(L2);
 					
 					if (modelExists()) {
+						nbVariablesSat --;
 						if (flagAllSolutions) {
 							deductMultipleSolution(CC);
 							if (!backtrack()) {
@@ -1262,6 +1266,7 @@ public class Solver2 {
 				clearLP();
 					
 				if (modelExists()) {
+					nbVariablesSat --;
 					if (flagAllSolutions) {
 						deductMultipleSolution(CC);
 						if (!backtrack()) {
@@ -1361,13 +1366,13 @@ public class Solver2 {
 	}
 	
 	public static void main(String [] args) {
-		flagAllSolutions = false;
+		flagAllSolutions = true;
 		flagDomHeuristic = false;
 		flagDegHeuristic = true;
 		flagSupport = false;
 		flagDisplay = true;
 		
-		csp = Generator.generatePigeons(3,3);
+		csp = Generator.generatePigeons(10,9);
 		solve();
 		
 		displayTime();
