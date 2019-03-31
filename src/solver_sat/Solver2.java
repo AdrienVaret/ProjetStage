@@ -1371,7 +1371,7 @@ public class Solver2 {
 		flagSupport = false;
 		flagDisplay = true;
 		
-		csp = Generator.generatePigeons(9,8);
+		csp = Generator.generatePigeons(10,9);
 		solve();
 		
 		displayTime();
