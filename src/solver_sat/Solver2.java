@@ -75,6 +75,8 @@ public class Solver2 {
 	static int [] propagateds;
 	
 	static Litteral x, y, nx, ny;
+	
+	//static GenericCouple2<Integer, Litteral> coupleAff = new GenericCouple2();
 	/*
 	 * Variables used for breaking symmetries
 	 */
@@ -488,6 +490,8 @@ public class Solver2 {
 			
 			if (((sat.getLitteralState(id) == 0) || (isSat(l)))){
 				return new GenericCouple2<Integer, Litteral>(i,l);
+				//coupleAff.setValue1(i);
+				//coupleAff.setValue2(l);
 			}
 		}
 		
@@ -495,6 +499,8 @@ public class Solver2 {
 		long time = end - begin;
 		findUnaffectedTime += time;
 		return new GenericCouple2<Integer, Litteral> (null, null);
+		//coupleAff.setValue1(null);
+		//coupleAff.setValue2(null);
 	}
 	
 	/**

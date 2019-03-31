@@ -5,6 +5,10 @@ public class GenericCouple2<S, T> {
 	private S value1;
 	private T value2;
 	
+	public GenericCouple2() {
+		//DO_NOTHING
+	}
+	
 	public GenericCouple2(S v1, T v2) {
 		this.value1 = v1;
 		this.value2 = v2;
