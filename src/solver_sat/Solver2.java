@@ -75,7 +75,6 @@ public class Solver2 {
 	
 	static Litteral x, y, nx, ny;
 	
-	//static GenericCouple2<Integer, Litteral> coupleAff = new GenericCouple2();
 	/*
 	 * Variables used for breaking symmetries
 	 */
@@ -89,18 +88,6 @@ public class Solver2 {
 	/*
 	 * Utilitaries
 	 */
-	public static void clearArray(int [] array) {
-		for (int i = 0 ; i < array.length ; i++) {
-			array[i] = 0;
-		}
-	}
-	
-	public static void clearGraph(ArrayList<ArrayList<Cause>> G) {
-		for (ArrayList<Cause> causes : G) {
-			causes.clear();
-		}
-	}
-	
 	public static void clearEP(int index) {
 		for (int i = 0 ; i < iEP[index] ; i++)
 			explicitsPropagations[index][i] = null;
@@ -474,12 +461,7 @@ public class Solver2 {
 			sat.getLitteralsStates()[getIndex(l.getId())] = -1;
 	}
 	
-	/**
-	 * Returns an unafected litteral and his index, or null
-	 * @param sat
-	 * @param clause
-	 * @return GenericCouple<Integer, Litteral>
-	 */
+	
 	public static int findUnafectedOrSatLitteral(Clause clause) {
 		long begin = System.currentTimeMillis();
 		
@@ -610,14 +592,10 @@ public class Solver2 {
 					}
 				} else { //if affectable != null, bouger les pointeurs
 					if (x.equals(nl)) {
-						int xid = x.getId();
-						int index = 1;
+
+						int index = i;
 						
-						while (occ[xid][index] != c.getId()) {
-							index ++;
-						}
-						
-						occ[xid][index] = -1;
+						occ[nl.getId()][index] = -1;
 						toShift ++;
 						
 						int lid = affectable.getId();
@@ -631,13 +609,10 @@ public class Solver2 {
 						sat.setCouplePtr(c.getId(), c.get(0), c.get(1));
 						
 					} else if (y.equals(nl)){
-						int yid = y.getId();
-						int index = 1;
-						while (occ[yid][index] != c.getId()) {
-							index ++;
-						}
+						
+						int index = i;
 
-						occ[yid][index] = -1;
+						occ[nl.getId()][index] = -1;
 						toShift ++;
 						
 						int lid = affectable.getId();
@@ -1047,7 +1022,8 @@ public class Solver2 {
 	 * Solve the csp
 	 * @param csp
 	 */
-	public static void solve() {	
+	public static void solve() {
+		
 		if (flagSupport)
 			sat = BinCSPConverter.supportEncoding(csp);
 		else 
@@ -1310,9 +1286,10 @@ public class Solver2 {
 		flagSupport = false;
 		flagDisplay = true;
 		
-		csp = Generator.generatePigeons(10, 9);
+		csp = Generator.generatePigeons(4, 3);
 		solve();
 		
 		displayTime();
+
 	}
 }

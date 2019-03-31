@@ -8,6 +8,11 @@ public class Litteral {
 	private ArrayList<Clause> occurences;
 	private int idVariable;
 	
+	public Litteral(int id) {
+		this.id = id;
+		occurences = new ArrayList<Clause>();
+	}
+	
 	public Litteral(int id, int idVariable) {
 		this.id = id;
 		this.idVariable = idVariable;
@@ -28,6 +33,10 @@ public class Litteral {
 	
 	public int getIdVariable() {
 		return idVariable;
+	}
+	
+	public void setIdVariable(int idVariable) {
+		this.idVariable = idVariable;
 	}
 	
 	@Override

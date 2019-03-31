@@ -99,21 +99,100 @@ public class SAT {
 		}
 	}
 	
-	public static void parseCNFFile(String path) {
-		try {
+	public static SAT parseCNFFile(String path) {
+		
+		long begin = System.currentTimeMillis();
+		
+		int maxOccurences = 0;
+		int nbVariables = -1;
+		int nbClauses = -1;
+		int nbClausesDomain = 0;
+		ArrayList<Litteral> litterals = new ArrayList<Litteral>(); 
+		ArrayList<Clause> clauses = new ArrayList<Clause>();
+		
+		int [] occurences = null;
+		try {			
+			
 			BufferedReader r = new BufferedReader(new FileReader(new File(path)));
 			String line = null;
+			int clausesCreateds = 0;
+			
 			while ((line = r.readLine()) != null) {
 				String [] splittedLine = line.split(" ");
 				
+				if (splittedLine[0].equals("p")) {
+					nbVariables = Integer.parseInt(splittedLine[2]);
+					nbClauses = Integer.parseInt(splittedLine[3]);
+					occurences = new int[nbVariables * 2];
+					for (int i = 0 ; i < nbVariables * 2 ; i += 2) {
+						litterals.add(new Litteral(i));
+						litterals.add(new Litteral(i+1));
+					}
+				}
+				
+				else if (splittedLine[0] != "c"){
+					Clause clause = new Clause(clausesCreateds);
+					boolean clauseDomain = true;
+					for (int i = 0 ; i < splittedLine.length - 1 ; i++) {
+						if (splittedLine[i].charAt(0) == '-') clauseDomain = false;
+						int intLitteral = Integer.parseInt(splittedLine[i]);
+						
+						int index;
+						if (intLitteral < 0) {
+							index = (2 * ((-1 * intLitteral) - 1)) + 1;
+						} else {
+							index = (2 * (intLitteral - 1));
+						}
+						
+						occurences[index] ++;
+						clause.addLitteral(litterals.get(index));
+					}
+					clauses.add(clause);
+					if (clauseDomain) {
+						for (int i = 0 ; i < splittedLine.length - 1 ; i++) {
+							int intLitteral = Integer.parseInt(splittedLine[i]);
+							
+							int index;
+							if (intLitteral < 0) {
+								index = (2 * ((-1 * intLitteral) - 1)) + 1;
+							} else {
+								index = (2 * (intLitteral - 1));
+							}
+							
+							litterals.get(index).setIdVariable(clausesCreateds);
+						}
+						nbClausesDomain ++;
+					}			
+					clausesCreateds ++;
+				}
 			}
+			
+			for (int i = 0 ; i < occurences.length ; i++) {
+				if (occurences[i] > maxOccurences)
+					maxOccurences = occurences[i];
+			}
+			
+			r.close();
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+			
+		long end = System.currentTimeMillis();
+		long time = end - begin;
+		
+		System.out.println("read instance : " + path);
+		System.out.println(nbVariables + " variables, " + nbClauses + " clauses");
+		System.out.println(nbClausesDomain + " domain clauses : ");
+		
+		for (int i = 0 ; i < nbClausesDomain ; i++) {
+			System.out.println("C" + (i+1) + "\t---\t" + clauses.get(i).toString());
+		}
+		
+		System.out.println("parse time : " + time + " ms.");
+		
+		return new SAT(nbVariables, nbClauses, clauses, litterals, maxOccurences);
 	}
 	
 	@Override
@@ -144,5 +223,9 @@ public class SAT {
 	
 	public int getMaxOccurences() {
 		return maxOccurences;
+	}
+	
+	public static void main(String [] args) {
+		SAT sat = parseCNFFile("result.txt");
 	}
 }
