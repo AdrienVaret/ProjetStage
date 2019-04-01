@@ -753,7 +753,11 @@ public class Solver2 {
 			iC --;
 		}
 		
-		boolean r = bcp(toPropage, false);
+		boolean r;
+		
+		if (iTP > 1)
+			r = bcp(toPropage, false);
+		else r = false;
 				
 		for (int i = 0 ; i < toPropage.length ; i++) {
 			if (toPropage[i] == null) break;
@@ -815,8 +819,11 @@ public class Solver2 {
 					iC --;
 				}
 				
-				r = bcp(toPropage, false);
-					
+				if (iTP > 1)
+					r = bcp(toPropage, false);
+				else
+					r = false;
+				
 				for (int i = 0 ; i < toPropage.length ; i++) {
 						if (toPropage[i] == null) break;
 						explicitsPropagations[idClause][iEP[idClause]] = toPropage[i];
@@ -1298,6 +1305,7 @@ public class Solver2 {
 		flagDisplay = true;
 		
 		csp = Generator.generatePigeons(10,9);
+		//csp = Generator.generateRandomProblem(4, 5, 0.9, 15).getV1();
 		solve();
 		
 		displayTime();
