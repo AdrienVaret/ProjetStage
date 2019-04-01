@@ -1059,27 +1059,4 @@ public class Generator {
 		
 		return csp;
 	}
-	
-	public static void main(String [] args) {
-		java.text.DecimalFormat df = new java.text.DecimalFormat("0.##");
-		for (int n = 10 ; n <= 20 ; n += 5) {
-			for (int d = 3 ; d <= n - 2 ; d += 2) {
-				for (double density = 0.1 ; density < 1.0 ; density += (float)0.1) {
-					for (double hardness = 0.1 ; hardness < 1.0 ; hardness += (float)0.1) {
-						int nbConstraint = (int)((d*d) * hardness);
-						GenericCouple<BinCSP> couple = generateRandomProblem(n, d, density, nbConstraint);
-						SAT sat1 = BinCSPConverter.directEncoding(couple.getV1());
-						SAT sat2 = BinCSPConverter.supportEncoding(couple.getV2());
-						sat1.exportToCNFFile("instances/random_csp_" + n + "_" + d + "_" + density + "_" + hardness + "_direct.cnf");
-						sat2.exportToCNFFile("instances/random_csp_" + n + "_" + d + "_" + density + "_" + hardness + "_support.cnf");
-						System.out.println("instances/random_csp_" + n + "_" + d + "_" + density + "_" + hardness);
-					}
-				}
-			}
-		} 
-		
-		//GenericCouple<BinCSP> couple = generateRandomProblem(14, 13, , nbConstraint);
-		
-		
-	}
 }

@@ -521,6 +521,9 @@ public class Solver2 {
 								propagateds[L[index].getId()] = 0;
 							}
 							
+							long end = System.currentTimeMillis();
+							propagationTime += (end-begin);
+							
 							return false;
 						}
 						
@@ -538,6 +541,9 @@ public class Solver2 {
 									if (L[index] == null) break;
 									propagateds[L[index].getId()] = 0;
 								}
+								
+								long end = System.currentTimeMillis();
+								propagationTime += (end-begin);
 								
 								return false;
 							}
@@ -570,6 +576,9 @@ public class Solver2 {
 									if (L[index] == null) break;
 									propagateds[L[index].getId()] = 0;
 								}
+								
+								long end = System.currentTimeMillis();
+								propagationTime += (end-begin);
 								
 								return false;
 							}
@@ -635,14 +644,16 @@ public class Solver2 {
 			l = L[indexLitteral];
 		}
 		
-		long end = System.currentTimeMillis();
-		propagationTime += end - begin;
+		
 		nbProp = indexLitteral;
 		
 		for (int index = 0 ; index < L.length ; index++) {
 			if (L[index] == null) break;
 			propagateds[L[index].getId()] = 0;
 		}
+		
+		long end = System.currentTimeMillis();
+		propagationTime += end - begin;
 		
 		return true;
 	}	
@@ -1286,7 +1297,7 @@ public class Solver2 {
 		flagSupport = false;
 		flagDisplay = true;
 		
-		csp = Generator.generatePigeons(4, 3);
+		csp = Generator.generatePigeons(10,9);
 		solve();
 		
 		displayTime();
