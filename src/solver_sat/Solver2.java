@@ -66,11 +66,11 @@ public class Solver2 {
 	static ResultPropagation result;
 	
 	static Litteral [] LP, PA, P, C, L1, L2;
-	static int iLP = 0, iPA = 0, iA = 0, iP = 0, iC = 0;
+	static int iLP = 0, iA = 0, iP = 0, iC = 0;
 	
 	static ArrayList<Integer> CP = new ArrayList<Integer>();
 	static ArrayList<Integer> CC = new ArrayList<Integer>();
-	static int nbProp;
+	//static int nbProp;
 	static int [] propagateds;
 	
 	static Litteral x, y, nx, ny;
@@ -509,7 +509,6 @@ public class Solver2 {
 							result.setState(false);							
 							Utils.shiftAll(occ[nl.getId()], toShift);
 							toShift = 0;
-							nbProp = indexLitteral;
 							
 							for (int index = 0 ; index < L.length ; index++) {
 								if (L[index] == null) break;
@@ -525,12 +524,9 @@ public class Solver2 {
 						if (isAffected(y)) {
 							if (!isSat(y)) {
 								result.setState(false);
-								
 								Utils.shiftAll(occ[nl.getId()], toShift);
 								toShift = 0;
-								
 								indexLitteral ++;
-								nbProp = indexLitteral;
 								
 								for (int index = 0 ; index < L.length ; index++) {
 									if (L[index] == null) break;
@@ -538,8 +534,7 @@ public class Solver2 {
 								}
 								
 								long end = System.currentTimeMillis();
-								propagationTime += (end-begin);
-								
+								propagationTime += (end-begin);	
 								return false;
 							}
 						} else {
@@ -565,7 +560,6 @@ public class Solver2 {
 								result.setState(false);		
 								Utils.shiftAll(occ[nl.getId()], toShift);
 								toShift = 0;
-								nbProp = indexLitteral;
 								
 								for (int index = 0 ; index < L.length ; index++) {
 									if (L[index] == null) break;
@@ -638,9 +632,6 @@ public class Solver2 {
 			indexLitteral ++;
 			l = L[indexLitteral];
 		}
-		
-		
-		nbProp = indexLitteral;
 		
 		for (int index = 0 ; index < L.length ; index++) {
 			if (L[index] == null) break;
