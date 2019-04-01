@@ -1290,6 +1290,6 @@ public class Solver2 {
 		solve();
 		
 		displayTime();
-
+ 
 	}
 }
