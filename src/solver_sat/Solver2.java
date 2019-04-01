@@ -754,10 +754,22 @@ public class Solver2 {
 		}
 		
 		boolean r;
-		
+	
+		/*
 		if (iTP > 1)
 			r = bcp(toPropage, false);
-		else r = false;
+		else 
+			r = false;
+		*/
+		
+		if (iTP == 1)
+			r = false;
+		else if (domainsSizes[idClause] == 0)
+			r = false;
+		else if (iTP == 2 && domainsSizes[idClause] == 2)
+			r = false;
+		else
+			r = bcp(toPropage, false);
 				
 		for (int i = 0 ; i < toPropage.length ; i++) {
 			if (toPropage[i] == null) break;
@@ -819,10 +831,21 @@ public class Solver2 {
 					iC --;
 				}
 				
+				/*
 				if (iTP > 1)
 					r = bcp(toPropage, false);
 				else
 					r = false;
+				*/
+				
+				if (iTP == 1)
+					r = false;
+				else if (domainsSizes[idClause] == 0)
+					r = false;
+				else if (iTP == 2 && domainsSizes[idClause] == 2)
+					r = false;
+				else
+					r = bcp(toPropage, false);
 				
 				for (int i = 0 ; i < toPropage.length ; i++) {
 						if (toPropage[i] == null) break;
