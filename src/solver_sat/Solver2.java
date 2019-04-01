@@ -65,8 +65,8 @@ public class Solver2 {
 	static int [][] occ;
 	static ResultPropagation result;
 	
-	static Litteral [] LP, PA, toPropage, P, C, L1, L2;
-	static int iLP = 0, iPA = 0, iTP = 0, iA = 0, iP = 0, iC = 0;
+	static Litteral [] LP, PA, P, C, L1, L2;
+	static int iLP = 0, iPA = 0, iA = 0, iP = 0, iC = 0;
 	
 	static ArrayList<Integer> CP = new ArrayList<Integer>();
 	static ArrayList<Integer> CC = new ArrayList<Integer>();
@@ -94,11 +94,6 @@ public class Solver2 {
 		iEP[index] = 0;
 	}
 	
-	public static void clearTP() {
-		for (int i = 0 ; i < toPropage.length ; i++) toPropage[i] = null;
-		iTP = 0;
-	}
-		
 	public static void clearLP() {
 		for (int i = 0 ; i < iLP ; i++) LP[i] = null;
 		iLP = 0;
@@ -745,39 +740,34 @@ public class Solver2 {
 				domainsSizes[l.getIdVariable()] ++;
 		}
 		
+		int iL = 0;
+		
 		for (int i = 0 ; i < nbChoices ; i++) {
 			Litteral l = C[iC-1];
-			toPropage[iTP] = negation(l);
-			iTP ++;
+			L1[iL] = negation(l);
+			iL ++;
 			C[iC-1] = null;
 			iC --;
 		}
 		
 		boolean r;
-	
-		/*
-		if (iTP > 1)
-			r = bcp(toPropage, false);
-		else 
-			r = false;
-		*/
 		
-		if (iTP == 1)
+		if (iL == 1)
 			r = false;
 		else if (domainsSizes[idClause] == 0)
 			r = false;
-		else if (iTP == 2 && domainsSizes[idClause] == 2)
+		else if (iL == 2 && domainsSizes[idClause] == 2)
 			r = false;
 		else
-			r = bcp(toPropage, false);
-				
-		for (int i = 0 ; i < toPropage.length ; i++) {
-			if (toPropage[i] == null) break;
-			explicitsPropagations[idClause][iEP[idClause]] = toPropage[i];
+			r = bcp(L1, false);
+			
+		for (int i = 0 ; i < L1.length ; i++) {
+			if (L1[i] == null) break;
+			explicitsPropagations[idClause][iEP[idClause]] = L1[i];
 			iEP[idClause] ++;
 		}
 			
-		clearTP();
+		Utils.clearArray(L1);
 		
 		if (!r) {
 			while (!r) {
@@ -823,36 +813,30 @@ public class Solver2 {
 						domainsSizes[l.getIdVariable()] ++;
 				}
 				
+				iL = 0;
 				for (int i = 0 ; i < nbChoices ; i++) {
 					Litteral l = C[iC-1];
-					toPropage[iTP] = negation(l);
-					iTP ++;
+					L1[iL] = negation(l);
+					iL++;
 					C[iC-1] = null;
 					iC --;
 				}
 				
-				/*
-				if (iTP > 1)
-					r = bcp(toPropage, false);
-				else
-					r = false;
-				*/
-				
-				if (iTP == 1)
+				if (iL == 1)
 					r = false;
 				else if (domainsSizes[idClause] == 0)
 					r = false;
-				else if (iTP == 2 && domainsSizes[idClause] == 2)
+				else if (iL == 2 && domainsSizes[idClause] == 2)
 					r = false;
 				else
-					r = bcp(toPropage, false);
-				
-				for (int i = 0 ; i < toPropage.length ; i++) {
-						if (toPropage[i] == null) break;
-						explicitsPropagations[idClause][iEP[idClause]] = toPropage[i];
+					r = bcp(L1, false);
+					
+				for (int i = 0 ; i < L1.length ; i++) {
+					if (L1[i] == null) break;
+						explicitsPropagations[idClause][iEP[idClause]] = L1[i];
 						iEP[idClause] ++;
 				}
-				clearTP();
+				Utils.clearArray(L1);
 			}
 			
 			nodeState = true;
@@ -1003,7 +987,6 @@ public class Solver2 {
 		L2 = new Litteral[sat.getNbVariables() * 2];
 		P = new Litteral[sat.getNbVariables() * 2];
 		C = new Litteral[sat.getNbVariables()];
-		toPropage = new Litteral [sat.getNbVariables() * 2];
 		affectations = new int [csp.getNbVariables()];
 		explicitsPropagations = new Litteral [csp.getNbVariables()][sat.getNbVariables() * 2];
 		iEP = new int [csp.getNbVariables()];
@@ -1327,7 +1310,7 @@ public class Solver2 {
 		flagSupport = false;
 		flagDisplay = true;
 		
-		csp = Generator.generatePigeons(10,9);
+		csp = Generator.generatePigeons(10, 9);
 		//csp = Generator.generateRandomProblem(4, 5, 0.9, 15).getV1();
 		solve();
 		
