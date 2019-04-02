@@ -54,6 +54,12 @@ public class Utils {
 		t[j] = k;
 	}
 	
+	public static void swap(Litteral [] t, int i, int j) {
+		Litteral k = t[i];
+		t[i] = t[j];
+		t[j] = k;
+	}
+	
 	public static boolean isInt(String str)  
 	{  
 	  try  

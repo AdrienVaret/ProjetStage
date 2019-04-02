@@ -459,7 +459,7 @@ public class Solver2 {
 	public static int findUnafectedOrSatLitteral(Clause clause) {
 		long begin = System.currentTimeMillis();
 		
-		for (int i = 2 ; i < clause.getLitterals().size() ; i++) {
+		for (int i = 2 ; i < clause.size() ; i++) {
 			Litteral l = clause.get(i);
 			int id = getIndex(l.getId());			
 			if (((sat.getLitteralState(id) == 0) || (isSat(l)))) return i;			
@@ -602,7 +602,7 @@ public class Solver2 {
 						occ[lid][size+2] = -1;
 						occ[lid][0] ++;
 						
-						Collections.swap(c.getLitterals(), 0, iUnaff);
+						Utils.swap(c.getLitterals(), 0, iUnaff);
 						sat.setCouplePtr(c.getId(), c.get(0), c.get(1));
 						
 					} else if (y.equals(nl)){
@@ -619,7 +619,7 @@ public class Solver2 {
 						occ[lid][size+2] = -1;
 						occ[lid][0] ++;
 						
-						Collections.swap(c.getLitterals(), 1, iUnaff);
+						Utils.swap(c.getLitterals(), 1, iUnaff);
 						sat.setCouplePtr(c.getId(), c.get(0), c.get(1));
 					}
 				
@@ -963,7 +963,7 @@ public class Solver2 {
 			size ++;
 		}
 				
-		state[symetricsColors.get(0)] = 0; //(ou décrémenter, à voir)
+		state[symetricsColors.get(0)] = 0;
 		
 		countSP.add(size);
 		clearLP();
@@ -984,7 +984,7 @@ public class Solver2 {
 		occ = new int [sat.getNbVariables() * 2][sat.getMaxOccurences() + 2];
 		propagateds = new int [sat.getNbVariables() * 2];
 		
-		CP = new int [csp.getNbVariables()]; //attention à la taille
+		CP = new int [csp.getNbVariables()]; 
 		CC = new int [csp.getNbVariables()];
 	}
 	
@@ -1138,7 +1138,6 @@ public class Solver2 {
 					clearLP();
 					Utils.clearArray(L1);
 					Utils.clearArray(L2);
-					//CP.add(0);
 					CP[iCP] = 0;
 					iCP ++;
 					if (!backtrack()) {

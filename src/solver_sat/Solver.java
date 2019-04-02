@@ -612,7 +612,7 @@ public class Solver {
 	public static GenericCouple2<Integer, Litteral> findUnafectedOrSatLitteral(SAT sat, Clause clause) {
 		long begin = System.currentTimeMillis();
 		
-		for (int i = 2 ; i < clause.getLitterals().size() ; i++) {
+		for (int i = 2 ; i < clause.size() ; i++) {
 			Litteral l = clause.get(i);
 			int id = getIndex(l.getId());
 			
@@ -886,7 +886,7 @@ public class Solver {
 						occ[lid][size+2] = -1;
 						occ[lid][0] ++;
 						
-						Collections.swap(c.getLitterals(), 0, coupleAff.getValue1());
+						Utils.swap(c.getLitterals(), 0, coupleAff.getValue1());
 						sat.setCouplePtr(c.getId(), c.get(0), c.get(1));
 						
 						//Utils.shiftAll(occ[nl.getId()], toShift);
@@ -910,7 +910,7 @@ public class Solver {
 						occ[lid][size+2] = -1;
 						occ[lid][0] ++;
 						
-						Collections.swap(c.getLitterals(), 1, coupleAff.getValue1());
+						Utils.swap(c.getLitterals(), 1, coupleAff.getValue1());
 						sat.setCouplePtr(c.getId(), c.get(0), c.get(1));
 						
 						//Utils.shiftAll(occ[nl.getId()], toShift);

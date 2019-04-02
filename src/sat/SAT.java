@@ -132,7 +132,8 @@ public class SAT {
 				}
 				
 				else if (splittedLine[0] != "c"){
-					Clause clause = new Clause(clausesCreateds);
+					//Clause clause = new Clause(clausesCreateds);
+					ArrayList<Litteral> litts = new ArrayList<Litteral>();
 					boolean clauseDomain = true;
 					for (int i = 0 ; i < splittedLine.length - 1 ; i++) {
 						if (splittedLine[i].charAt(0) == '-') clauseDomain = false;
@@ -146,9 +147,10 @@ public class SAT {
 						}
 						
 						occurences[index] ++;
-						clause.addLitteral(litterals[index]);
+						//clause.addLitteral(litterals[index]);
+						litts.add(litterals[index]);
 					}
-					clauses.add(clause);
+					clauses.add(new Clause(clausesCreateds, litts));
 					if (clauseDomain) {
 						for (int i = 0 ; i < splittedLine.length - 1 ; i++) {
 							int intLitteral = Integer.parseInt(splittedLine[i]);

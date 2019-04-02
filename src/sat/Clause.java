@@ -5,31 +5,30 @@ import java.util.ArrayList;
 public class Clause {
 
 	private int id;
-	private ArrayList<Litteral> litterals;
+	private Litteral [] litterals;
 	
-	public Clause(int id) {
+	public Clause(int id, ArrayList<Litteral> litterals) {
 		this.id = id;
-		this.litterals = new ArrayList<Litteral>();
+		this.litterals = new Litteral[litterals.size()];
+		for (int i = 0 ; i < litterals.size() ; i++) {
+			this.litterals[i] = litterals.get(i);
+		}
 	}
 
 	public Litteral get(int index) {
-		return litterals.get(index);
+		return litterals[index];
 	}
 	
 	public int getId() {
 		return id;
 	}
 
-	public ArrayList<Litteral> getLitterals() {
+	public Litteral [] getLitterals() {
 		return litterals;
 	}
 	
-	public void addLitteral(Litteral litteral) {
-		litterals.add(litteral);
-	}
-	
 	public int size() {
-		return litterals.size();
+		return litterals.length;
 	}
 	
 	@Override

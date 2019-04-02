@@ -367,7 +367,8 @@ public class BinCSPConverter {
 		for (Variable variable : newCSP.getVariables()) {
 			sum += variable.getDomain().size() * 2;
 			t.add(sum);
-			Clause clause = new Clause(nbClauses);
+			//Clause clause = new Clause(nbClauses);
+			ArrayList<Litteral> litts = new ArrayList<Litteral>();
 			
 			for (String value : variable.getDomain().getValues()) {
 				Litteral x = new Litteral(i, idVariable);
@@ -375,11 +376,12 @@ public class BinCSPConverter {
 				litterals[iL] = x;
 				litterals[iL+1] = nx;
 				iL += 2;
-				clause.addLitteral(x);
+				//clause.addLitteral(x);
+				litts.add(x);
 				occ[x.getId()] ++;
 				i += 2;
 			}
-			clauses.add(clause);
+			clauses.add(new Clause(nbClauses, litts));
 			nbClauses ++;
 			idVariable ++;
 		}
@@ -387,16 +389,22 @@ public class BinCSPConverter {
 		int size = clauses.size();
 		for (i = 0 ; i < size ; i++) {
 			Clause clause = clauses.get(i);
-			for (int j = 0 ; j < clause.getLitterals().size() ; j++) {
+			//for (int j = 0 ; j < clause.getLitterals().size() ; j++) {
+			for (int j = 0 ; j < clause.size() ; j++) {
 				Litteral l1 = clause.get(j);
-				for (int k = j+1 ; k < clause.getLitterals().size() ; k++) {
+				for (int k = j+1 ; k < clause.size() ; k++) {
 					Litteral l2 = clause.get(k);
-					Clause c = new Clause(nbClauses);
-					c.addLitteral(litterals[l1.getId()+1]);
-					c.addLitteral(litterals[l2.getId()+1]);
+					//Clause c = new Clause(nbClauses);
+					ArrayList<Litteral> litts = new ArrayList<Litteral>();
+					//c.addLitteral(litterals[l1.getId()+1]);
+					//c.addLitteral(litterals[l2.getId()+1]);
+					litts.add(litterals[l1.getId()+1]);
+					litts.add(litterals[l2.getId()+1]);
+					
 					occ[litterals[l1.getId()+1].getId()] ++;
 					occ [litterals[l2.getId()+1].getId()] ++;
-					clauses.add(c);
+					//clauses.add(c);
+					clauses.add(new Clause(nbClauses, litts));
 					nbClauses ++;
 				}
 			}
@@ -412,12 +420,16 @@ public class BinCSPConverter {
 				int yIndex = Integer.parseInt(couple.getValue2()) - yMin;
 				Litteral l1 = getLitteralLazy(litterals, x, xIndex, t, 1);
 				Litteral l2 = getLitteralLazy(litterals, y, yIndex, t, 1);
-				Clause clause = new Clause(nbClauses);
-				clause.addLitteral(l1);
-				clause.addLitteral(l2);
+				//Clause clause = new Clause(nbClauses);
+				ArrayList<Litteral> litts = new ArrayList<Litteral>();
+				//clause.addLitteral(l1);
+				//clause.addLitteral(l2);
+				litts.add(l1);
+				litts.add(l2);
 				occ[l1.getId()] ++;
 				occ[l2.getId()] ++;
-				clauses.add(clause);
+				//clauses.add(clause);
+				clauses.add(new Clause(nbClauses, litts));
 				nbClauses ++;
 			}
 		}
@@ -464,18 +476,19 @@ public class BinCSPConverter {
 		for (Variable variable : csp.getVariables()) {
 			sum += variable.getDomain().size();
 			t.add(sum);
-			Clause clause = new Clause(nbClauses);
-			
+			//Clause clause = new Clause(nbClauses);
+			ArrayList<Litteral> litts = new ArrayList<Litteral>();
 			for (String value : variable.getDomain().getValues()) {
 				Litteral x = new Litteral(i, idVariable);
 				Litteral nx = new Litteral(i+1, idVariable);
 				litterals[iL] = x;
 				litterals[iL+1] = nx;
-				clause.addLitteral(x);
+				//clause.addLitteral(x);
+				litts.add(x);
 				occ[x.getId()] ++;
 				i += 2;
 			}
-			clauses.add(clause);
+			clauses.add(new Clause(nbClauses, litts));
 			nbClauses ++;
 			idVariable ++;
 		}
@@ -483,16 +496,20 @@ public class BinCSPConverter {
 		int size = clauses.size();
 		for (i = 0 ; i < size ; i++) {
 			Clause clause = clauses.get(i);
-			for (int j = 0 ; j < clause.getLitterals().size() ; j++) {
+			for (int j = 0 ; j < clause.size() ; j++) {
 				Litteral l1 = clause.get(j);
-				for (int k = j+1 ; k < clause.getLitterals().size() ; k++) {
+				for (int k = j+1 ; k < clause.size() ; k++) {
 					Litteral l2 = clause.get(k);
-					Clause c = new Clause(nbClauses);
-					c.addLitteral(litterals[l1.getId()+1]);
-					c.addLitteral(litterals[l2.getId()+1]);
+					//Clause c = new Clause(nbClauses);
+					ArrayList<Litteral> litts = new ArrayList<Litteral>();
+					//c.addLitteral(litterals[l1.getId()+1]);
+					//c.addLitteral(litterals[l2.getId()+1]);
+					litts.add(litterals[l1.getId()+1]);
+					litts.add(litterals[l2.getId()+1]);
 					occ [litterals[l1.getId()+1].getId()] ++;
 					occ [litterals[l2.getId()+1].getId()] ++;
-					clauses.add(c);
+					//clauses.add(c);
+					clauses.add(new Clause(nbClauses, litts));
 					nbClauses ++;
 				}
 			}
@@ -510,13 +527,15 @@ public class BinCSPConverter {
 					if ((constraint.getVariable1().equals(x) && constraint.getVariable2().equals(y))) {
 						
 						for (String vx : x.getDomain().getValues()) {
-							Clause clause = new Clause(nbClauses);
+							//Clause clause = new Clause(nbClauses);
+							ArrayList<Litteral> litts = new ArrayList<Litteral>();
 							
 							int xIndex = Integer.parseInt(vx) - xMin;
 							Litteral lx = litterals[(t.get(i)+xIndex)*2];  
 							Litteral nlx = litterals[lx.getId() + 1];
 							
-							clause.addLitteral(nlx);
+							//clause.addLitteral(nlx);
+							litts.add(nlx);
 							occ[nlx.getId()] ++;
 							
 							for (String vy : y.getDomain().getValues()) {
@@ -525,12 +544,13 @@ public class BinCSPConverter {
 								
 								for (Couple couple : constraint.getRelation().getCouples()) {
 									if (couple.getValue1().equals(vx) && couple.getValue2().equals(vy)) {
-										clause.addLitteral(ly);
+										//clause.addLitteral(ly);
+										litts.add(ly);
 										occ[ly.getId()] ++;
 									}
 								}
 							}
-							clauses.add(clause);
+							clauses.add(new Clause(nbClauses, litts));
 							nbClauses ++;
 						}
 					}
@@ -538,13 +558,15 @@ public class BinCSPConverter {
 					if (constraint.getVariable1().equals(y) && constraint.getVariable2().equals(x)) {
 						
 						for (String vx : x.getDomain().getValues()) {
-							Clause clause = new Clause(nbClauses);
+							//Clause clause = new Clause(nbClauses);
+							ArrayList<Litteral> litts = new ArrayList<Litteral>();
 							
 							int xIndex = Integer.parseInt(vx) - xMin;
 							Litteral lx = litterals[(t.get(i)+xIndex)*2];  
 							Litteral nlx = litterals[lx.getId() + 1];
 							
-							clause.addLitteral(nlx);
+							//clause.addLitteral(nlx);
+							litts.add(nlx);
 							occ[nlx.getId()] ++;
 							
 							for (String vy : y.getDomain().getValues()) {
@@ -553,12 +575,13 @@ public class BinCSPConverter {
 								
 								for (Couple couple : constraint.getRelation().getCouples()) {
 									if (couple.getValue2().equals(vx) && couple.getValue1().equals(vy)) {
-										clause.addLitteral(ly);
+										//clause.addLitteral(ly);
+										litts.add(ly);
 										occ[ly.getId()] ++;
 									}
 								}
 							}
-							clauses.add(clause);
+							clauses.add(new Clause(nbClauses, litts));
 							nbClauses ++;
 						}
 					}
