@@ -68,7 +68,8 @@ public class Solver2 {
 	static Litteral [] LP, PA, P, C, L1, L2;
 	static int iLP = 0, iA = 0, iP = 0, iC = 0;
 	
-	static ArrayList<Integer> CP = new ArrayList<Integer>();
+	static int [] CP;
+	static int iCP;
 	static ArrayList<Integer> CC = new ArrayList<Integer>();
 	static int [] propagateds;
 	
@@ -704,14 +705,14 @@ public class Solver2 {
 		
 		nodeState = false;
 		
-		if (CP.size() == 0 || (CP.size() == 1 && CP.get(0) == 0)) {
+		if (iCP == 0 || (iCP == 1 && CP[0] == 0)) {
 			long end = System.currentTimeMillis();
 			backtrackTime += (end - begin);
 			return false;
 		}
 		
-		int nbLitterals = CP.get(CP.size()-1);
-		CP.remove(CP.size()-1);
+		int nbLitterals = CP[iCP-1];
+		iCP --;
 		int nbChoices = CC.get(CC.size()-1);
 		CC.remove(CC.size()-1);
 		
@@ -781,14 +782,14 @@ public class Solver2 {
 					return false;
 				}
 				
-				if (CP.size() == 0 || (CP.size() == 1 && CP.get(0) == 0)) {
+				if (iCP == 0 || (iCP == 1 && CP[0] == 0)) {
 					long end = System.currentTimeMillis();
 					backtrackTime += (end - begin);
 					return false;
 				}
 								
-				nbLitterals = CP.get(CP.size()-1);
-				CP.remove(CP.size()-1);
+				nbLitterals = CP[iCP-1];
+				iCP --;
 				nbChoices = CC.get(CC.size()-1);
 				CC.remove(CC.size()-1);
 				
@@ -982,6 +983,8 @@ public class Solver2 {
 		result = new ResultPropagation(sat.getNbVariables() * 2);
 		occ = new int [sat.getNbVariables() * 2][sat.getMaxOccurences() + 2];
 		propagateds = new int [sat.getNbVariables() * 2];
+		
+		CP = new int [csp.getNbVariables()]; //attention à la taille
 	}
 	
 	public static ArrayList<Cause> getCauses(Litteral l, ArrayList<ArrayList<Cause>> graph, int [] occurences){
@@ -1133,7 +1136,9 @@ public class Solver2 {
 					clearLP();
 					Utils.clearArray(L1);
 					Utils.clearArray(L2);
-					CP.add(0);
+					//CP.add(0);
+					CP[iCP] = 0;
+					iCP ++;
 					if (!backtrack()) {
 						if (solutions.size() == 0)
 							System.out.println("# UNSATISFIABLE");
@@ -1159,7 +1164,8 @@ public class Solver2 {
 						size ++;
 					}
 					
-					CP.add(size);
+					CP[iCP] = size;
+					iCP ++;
 					
 					variablesStates[idClause] = 1;
 					nbVariablesSat ++; 
@@ -1204,7 +1210,8 @@ public class Solver2 {
 					
 			} else if (x != null && y == null) {
 				
-				CP.add(0);
+				CP[iCP] = 0;
+				iCP ++;
 				
 				if (action != Action.SAME_VARIABLE) {
 					affectations[iA] = idClause;
@@ -1304,6 +1311,5 @@ public class Solver2 {
 		solve();
 		
 		displayTime();
- 
 	}
 }
