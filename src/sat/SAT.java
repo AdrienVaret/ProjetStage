@@ -224,8 +224,4 @@ public class SAT {
 	public int getMaxOccurences() {
 		return maxOccurences;
 	}
-	
-	public static void main(String [] args) {
-		SAT sat = parseCNFFile("result.txt");
-	}
 }

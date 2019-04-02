@@ -70,7 +70,6 @@ public class Solver2 {
 	
 	static ArrayList<Integer> CP = new ArrayList<Integer>();
 	static ArrayList<Integer> CC = new ArrayList<Integer>();
-	//static int nbProp;
 	static int [] propagateds;
 	
 	static Litteral x, y, nx, ny;
@@ -83,8 +82,7 @@ public class Solver2 {
 	static Litteral [] SP; //Symetries propagations
 	static ArrayList<Integer> countSP;
 	static int iSP;
-	
-	
+		
 	/*
 	 * Utilitaries
 	 */
@@ -503,7 +501,7 @@ public class Solver2 {
 					affectable = c.get(iUnaff);
 				
 				if (affectable == null) {
-					if (x != null && x.equals(nl)) { //ajout de x != null
+					if (x != null && x.equals(nl)) {
 						
 						if (y == null) {
 							result.setState(false);							
@@ -588,7 +586,7 @@ public class Solver2 {
 							}
 						}
 					}
-				} else { //if affectable != null, bouger les pointeurs
+				} else {
 					if (x.equals(nl)) {
 
 						int index = i;
