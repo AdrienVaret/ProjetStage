@@ -70,7 +70,8 @@ public class Solver2 {
 	
 	static int [] CP;
 	static int iCP;
-	static ArrayList<Integer> CC = new ArrayList<Integer>();
+	static int [] CC;
+	static int iCC;
 	static int [] propagateds;
 	
 	static Litteral x, y, nx, ny;
@@ -107,7 +108,6 @@ public class Solver2 {
 		return x >> 1;
 	}
 	
-
 	static Litteral [][] ep;
 	static int [] iep;
 	static int idC, idCC;
@@ -157,7 +157,7 @@ public class Solver2 {
 								
 				iep[idCC] = 0;
 				idCC --;
-				int nb = CC.get(idCC);
+				int nb = CC[idCC];
 				idC -= nb;
 			}
 			
@@ -215,9 +215,9 @@ public class Solver2 {
 		
 		while (true) {
 
-			if (idCC >= CC.size()) break;
-						
-			int n = CC.get(idCC);	
+			if (idCC >= iCC) break;
+			
+			int n = CC[idCC];
 			
 			if (n == 2) {
 				l1 = C[idC];
@@ -254,8 +254,8 @@ public class Solver2 {
 				}
 				
 				cp.add(size);
-				
-				if (r == true && cp.size() == CC.size()) {
+			
+				if (r && cp.size() == iCC) {
 					int index = 0;
 					int indexL = 0;
 					for (int i = 0 ; i < sat.getNbVariables() ; i++) {
@@ -713,8 +713,8 @@ public class Solver2 {
 		
 		int nbLitterals = CP[iCP-1];
 		iCP --;
-		int nbChoices = CC.get(CC.size()-1);
-		CC.remove(CC.size()-1);
+		int nbChoices = CC[iCC-1];
+		iCC --;
 		
 		if(idClause == -1)
 			return false;
@@ -790,8 +790,8 @@ public class Solver2 {
 								
 				nbLitterals = CP[iCP-1];
 				iCP --;
-				nbChoices = CC.get(CC.size()-1);
-				CC.remove(CC.size()-1);
+				nbChoices = CC[iCC-1];
+				iCC --;
 				
 				for (int i = 0 ; i < nbLitterals ; i++) {
 					Litteral l = P[iP-1];
@@ -985,6 +985,7 @@ public class Solver2 {
 		propagateds = new int [sat.getNbVariables() * 2];
 		
 		CP = new int [csp.getNbVariables()]; //attention à la taille
+		CC = new int [csp.getNbVariables()];
 	}
 	
 	public static ArrayList<Cause> getCauses(Litteral l, ArrayList<ArrayList<Cause>> graph, int [] occurences){
@@ -1113,7 +1114,8 @@ public class Solver2 {
 				iC ++;
 				C[iC] = y;
 				iC ++;
-				CC.add(2);
+				CC[iCC] = 2;
+				iCC ++;
 				
 				L1[0] = x;
 				L1[1] = ny;
@@ -1222,7 +1224,8 @@ public class Solver2 {
 				
 				C[iC] = x;
 				iC ++;
-				CC.add(1);
+				CC[iCC] = 1;
+				iCC ++;
 						
 				action = Action.HEURISTIC;
 								
