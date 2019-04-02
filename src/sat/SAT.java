@@ -14,12 +14,12 @@ public class SAT {
 
 	private int nbVariables, nbClauses;
 	private ArrayList<Clause> clauses;
-	private ArrayList<Litteral> litterals;
+	private Litteral [] litterals;
 	private ArrayList<GenericCouple<Litteral>> tabPtrs;
 	private int[] litteralsStates;
 	private int maxOccurences;
 	
-	public SAT(int nbVariables, int nbClauses, ArrayList<Clause> clauses, ArrayList<Litteral> litterals, int maxOccurences) {
+	public SAT(int nbVariables, int nbClauses, ArrayList<Clause> clauses, Litteral [] litterals, int maxOccurences) {
 		this.nbClauses   = nbClauses;
 		this.nbVariables = nbVariables;
 		this.clauses     = clauses;
@@ -33,7 +33,7 @@ public class SAT {
 		return clauses;
 	}
 
-	public ArrayList<Litteral> getLitterals() {
+	public Litteral[] getLitterals() {
 		return litterals;
 	}
 	
@@ -71,7 +71,7 @@ public class SAT {
 	}
 	
 	public Litteral getLitteral(int index) {
-		return litterals.get(index);
+		return litterals[index];
 	}
 	
 	public GenericCouple<Litteral> getCouplePtr(int index){
@@ -107,7 +107,7 @@ public class SAT {
 		int nbVariables = -1;
 		int nbClauses = -1;
 		int nbClausesDomain = 0;
-		ArrayList<Litteral> litterals = new ArrayList<Litteral>(); 
+		Litteral [] litterals = null; 
 		ArrayList<Clause> clauses = new ArrayList<Clause>();
 		
 		int [] occurences = null;
@@ -124,9 +124,10 @@ public class SAT {
 					nbVariables = Integer.parseInt(splittedLine[2]);
 					nbClauses = Integer.parseInt(splittedLine[3]);
 					occurences = new int[nbVariables * 2];
+					litterals = new Litteral[nbVariables * 2];
 					for (int i = 0 ; i < nbVariables * 2 ; i += 2) {
-						litterals.add(new Litteral(i));
-						litterals.add(new Litteral(i+1));
+						litterals[i] = new Litteral(i);
+						litterals[i+1] = new Litteral(i+1);
 					}
 				}
 				
@@ -145,7 +146,7 @@ public class SAT {
 						}
 						
 						occurences[index] ++;
-						clause.addLitteral(litterals.get(index));
+						clause.addLitteral(litterals[index]);
 					}
 					clauses.add(clause);
 					if (clauseDomain) {
@@ -159,7 +160,7 @@ public class SAT {
 								index = (2 * (intLitteral - 1));
 							}
 							
-							litterals.get(index).setIdVariable(clausesCreateds);
+							litterals[index].setIdVariable(clausesCreateds);
 						}
 						nbClausesDomain ++;
 					}			

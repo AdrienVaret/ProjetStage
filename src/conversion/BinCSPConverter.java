@@ -12,7 +12,6 @@ import sat.Litteral;
 import sat.SAT;
 import bincsp.Variable;
 import generator.Generator;
-import utils.CreateCSP;
 
 public class BinCSPConverter {
 
@@ -195,11 +194,11 @@ public class BinCSPConverter {
 		return litterals.get(begin + (2 * i) + state);
 	}
 	
-	public static Litteral getLitteralLazy(ArrayList<Litteral> litterals, 
+	public static Litteral getLitteralLazy(Litteral [] litterals, 
 			Variable x, int i, ArrayList<Integer> t, int state) {
 		int index = x.getIndex();
 		int begin = t.get(index);
-		return litterals.get(begin + (2 * i) + state);
+		return litterals[begin + (2 * i) + state];
 	}
 	
 	public static void breakSymmetries2(BinCSP csp) {
@@ -353,7 +352,7 @@ public class BinCSPConverter {
 		BinCSP newCSP = convertToConflicts(csp);
 		newCSP = shiftDomains(newCSP);
 		
-		ArrayList<Litteral> litterals = new ArrayList<Litteral>();
+		Litteral [] litterals = new Litteral [nbLitterals * 2];
 		ArrayList<Clause> clauses = new ArrayList<Clause>();
 		int i = 0;
 		int sum = 0;
@@ -363,6 +362,7 @@ public class BinCSPConverter {
 		ArrayList<Integer> t = new ArrayList<Integer>();
 		t.add(0);
 		
+		int iL = 0;
 		int idVariable = 0;
 		for (Variable variable : newCSP.getVariables()) {
 			sum += variable.getDomain().size() * 2;
@@ -372,8 +372,9 @@ public class BinCSPConverter {
 			for (String value : variable.getDomain().getValues()) {
 				Litteral x = new Litteral(i, idVariable);
 				Litteral nx = new Litteral(i+1, idVariable);
-				litterals.add(x);
-				litterals.add(nx);
+				litterals[iL] = x;
+				litterals[iL+1] = nx;
+				iL += 2;
 				clause.addLitteral(x);
 				occ[x.getId()] ++;
 				i += 2;
@@ -391,10 +392,10 @@ public class BinCSPConverter {
 				for (int k = j+1 ; k < clause.getLitterals().size() ; k++) {
 					Litteral l2 = clause.get(k);
 					Clause c = new Clause(nbClauses);
-					c.addLitteral(litterals.get(l1.getId()+1));
-					c.addLitteral(litterals.get(l2.getId()+1));
-					occ [litterals.get(l1.getId()+1).getId()] ++;
-					occ [litterals.get(l2.getId()+1).getId()] ++;
+					c.addLitteral(litterals[l1.getId()+1]);
+					c.addLitteral(litterals[l2.getId()+1]);
+					occ[litterals[l1.getId()+1].getId()] ++;
+					occ [litterals[l2.getId()+1].getId()] ++;
 					clauses.add(c);
 					nbClauses ++;
 				}
@@ -426,7 +427,7 @@ public class BinCSPConverter {
 			if (occ[i] > maxOcc) maxOcc = occ[i];
 		}
 		
-		return new SAT(litterals.size()/2, clauses.size(), clauses, litterals, maxOcc);	
+		return new SAT(litterals.length/2, clauses.size(), clauses, litterals, maxOcc);	
 	}
 	
 	public static boolean containsCouple(Relation relation, Couple couple) {
@@ -445,11 +446,10 @@ public class BinCSPConverter {
 		}
 		
 		int [] occ = new int [2 * nbLitterals];
-		
-		//BinCSP newCSP = convertToConflicts(csp);
+
 		csp = shiftDomains(csp);
 		
-		ArrayList<Litteral> litterals = new ArrayList<Litteral>();
+		Litteral [] litterals = new Litteral [nbLitterals * 2];
 		ArrayList<Clause> clauses = new ArrayList<Clause>();
 		int i = 0;
 		int sum = 0;
@@ -459,9 +459,9 @@ public class BinCSPConverter {
 		ArrayList<Integer> t = new ArrayList<Integer>();
 		t.add(0);
 		
+		int iL = 0;
 		int idVariable = 0;
 		for (Variable variable : csp.getVariables()) {
-			//sum += variable.getDomain().size() * 2;
 			sum += variable.getDomain().size();
 			t.add(sum);
 			Clause clause = new Clause(nbClauses);
@@ -469,8 +469,8 @@ public class BinCSPConverter {
 			for (String value : variable.getDomain().getValues()) {
 				Litteral x = new Litteral(i, idVariable);
 				Litteral nx = new Litteral(i+1, idVariable);
-				litterals.add(x);
-				litterals.add(nx);
+				litterals[iL] = x;
+				litterals[iL+1] = nx;
 				clause.addLitteral(x);
 				occ[x.getId()] ++;
 				i += 2;
@@ -488,10 +488,10 @@ public class BinCSPConverter {
 				for (int k = j+1 ; k < clause.getLitterals().size() ; k++) {
 					Litteral l2 = clause.get(k);
 					Clause c = new Clause(nbClauses);
-					c.addLitteral(litterals.get(l1.getId()+1));
-					c.addLitteral(litterals.get(l2.getId()+1));
-					occ [litterals.get(l1.getId()+1).getId()] ++;
-					occ [litterals.get(l2.getId()+1).getId()] ++;
+					c.addLitteral(litterals[l1.getId()+1]);
+					c.addLitteral(litterals[l2.getId()+1]);
+					occ [litterals[l1.getId()+1].getId()] ++;
+					occ [litterals[l2.getId()+1].getId()] ++;
 					clauses.add(c);
 					nbClauses ++;
 				}
@@ -513,15 +513,15 @@ public class BinCSPConverter {
 							Clause clause = new Clause(nbClauses);
 							
 							int xIndex = Integer.parseInt(vx) - xMin;
-							Litteral lx = litterals.get((t.get(i)+xIndex)*2);  
-							Litteral nlx = litterals.get(lx.getId() + 1);
+							Litteral lx = litterals[(t.get(i)+xIndex)*2];  
+							Litteral nlx = litterals[lx.getId() + 1];
 							
 							clause.addLitteral(nlx);
 							occ[nlx.getId()] ++;
 							
 							for (String vy : y.getDomain().getValues()) {
 								int yIndex = Integer.parseInt(vy) - yMin;
-								Litteral ly = litterals.get((t.get(j)+yIndex)*2);
+								Litteral ly = litterals[(t.get(j)+yIndex)*2];
 								
 								for (Couple couple : constraint.getRelation().getCouples()) {
 									if (couple.getValue1().equals(vx) && couple.getValue2().equals(vy)) {
@@ -541,15 +541,15 @@ public class BinCSPConverter {
 							Clause clause = new Clause(nbClauses);
 							
 							int xIndex = Integer.parseInt(vx) - xMin;
-							Litteral lx = litterals.get((t.get(i)+xIndex)*2);  
-							Litteral nlx = litterals.get(lx.getId() + 1);
+							Litteral lx = litterals[(t.get(i)+xIndex)*2];  
+							Litteral nlx = litterals[lx.getId() + 1];
 							
 							clause.addLitteral(nlx);
 							occ[nlx.getId()] ++;
 							
 							for (String vy : y.getDomain().getValues()) {
 								int yIndex = Integer.parseInt(vy) - yMin;
-								Litteral ly = litterals.get((t.get(j)+yIndex)*2);
+								Litteral ly = litterals[(t.get(j)+yIndex)*2];
 								
 								for (Couple couple : constraint.getRelation().getCouples()) {
 									if (couple.getValue2().equals(vx) && couple.getValue1().equals(vy)) {
@@ -572,7 +572,7 @@ public class BinCSPConverter {
 			if (occ[i] > maxOcc) maxOcc = occ[i];
 		}
 		
-		return new SAT(litterals.size()/2, clauses.size(), clauses, litterals, maxOcc);	
+		return new SAT(litterals.length/2, clauses.size(), clauses, litterals, maxOcc);	
 	}
 	
 	public static void main(String [] args) {

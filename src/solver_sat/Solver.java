@@ -1398,7 +1398,8 @@ public class Solver {
 		for (int i = 1 ; i < symetricsColors.size() ; i++) {
 			int color = symetricsColors.get(i);
 			int indexX = (idClause * (2 * d)) + (2 * color); 
-			Litteral x = negation(sat, sat.getLitterals().get(indexX));
+			//Litteral x = negation(sat, sat.getLitterals().get(indexX));
+			Litteral x = negation(sat, sat.getLitteral(indexX));
 			L1[iL1] = x;
 			iL1 ++;
 		}
